@@ -1,45 +1,20 @@
-\section{Prosjektets mål}
+\section{Oppgavens problemstilling og mål}
 
-Dette fordypningsprosjektet har hatt følgende overordnede mål:
+Denne masteroppgaven opererer med en konkret definert problemstilling. Her presesnteres denne definisjonen, hvorpå et sett med konkrete, oppnåelige, og tidsbestemte målpunkter forbundet til definisjonen av problemstillingen også blir listet opp.
+
+\textbf{Problemstilling:} Formålet med dette prosjektet er å implementere et høytilgjengelig programvaresystem bygget med en nøkkel-verdi-datamodell realisert med databasehandteringssystemet Project Voldemort, der oppgraderinger som involverer endringer 
+
+Oppgaven har hatt følgende overordnede mål:
 
 \begin{enumerate}
-  \item Utdype hva det vil si å gjøre programvareoppdateringer ''online'' og rullerende oppgraderinger % kap 1 og 2
-  \item Sette opp en oversikt over tilgjengelig vitenskaplig literattur og øvrige nettressurser utgitt \\ av de som drifter storskale internettjenester om online oppgradering i storskala webapplikasjoner
-  \item Drøfte eksisterende teknikker/arkitekturer/prosesser som implementerer \\ online oppgradering i en distribuert kontekst og vurdere hvordan hver av disse løser problemet
+  \item Beskrive sammenhengen mellom kontinuerlig programvareleveranse og levende oppgradering av datamodeller % kap 1 - 3
+  \item Modellere en modulær løsning der semistrukturerte datamodeller, også referert til som NoSQL-datamodeller, kan oppgraderes synkront med applikasjonstjenerne
 \end{enumerate}
 
-Denne rapporten diskuterer også hvordan rullerende oppgradering av et distribuert nøkkel-verdi-databasesystem kan i så stor grad som mulig automatiseres. Hva kan evt. gjøres for å utbedre dette for én av databasene?
 
+%---------------------
+%Notater
 
-%--------------------------------------------------
+% For this master thesis, a set of goals has been determined including a problem definition. The definition is first presented, and then some formalized goals related to the definition is given. The problem can be defined as following:
 
-
-%\subsubsection{Kladd for foreløpig problemstilling}
-
-%''High-avalibility og key-value/NoSQL-databaser. Evaluer hvordan NoSQL-databasen støtter høytilgjengelig. Hvilken støtte har de for online upgrades og andre online maintenance-oppgaver? ''\\
-
-%\textit{Oppgaveforslag}
-
-%I dette prosjektet har det blitt foretatt et litteraturstudium på hvordan programvareoppgraderinger gjøres i databaseklynger (cluster). Det belyses hvilke mønstre og teknikker benyttes i industrien
-
-%Konkrete forslag til hvordan en av disse teknikkene kan implementeres i et høytilgjengelig databasesystem
-
-%\texttt{TBC, se siste side av ''To Upgrade or not'' og viko for info om problemstillingdefinisjon.}
-%Prosjektets bidrag (10.09.17)
-
-%Undersøker systemets støtte for rullerende oppgradering av nodeprosesser, under forskjellige betingelser/begrensninger (e.g. at oppdateringen medfører kaskade-endringer/propagerer nye endringer)
-
-%Konkrete forslag til hvordan forbedre støtte for rolling upgrades.
-
-%\\ Øvrige innfallsvinkler
-%\textit{Vinkel 1}
-
-%I dette prosjektet skal systemtilgjengeligheten til fire forskjellige distribuerte databasehandteringssystemer (DBMS) som er del av NoSQL - økosystemet undersøkes. Hvordan oppfører de distribuerte databasesystemene seg når en node (programvareprosess, ikke datamaskin) avsluttes og erstattes med en ny etter en viss periode (\texttt{dette scenariet er vanlig - bør her vise til kilder fra industrien}), og er det en optimal prosess gitt omstendighetene (som clusteret er blind for) ?
-
-%Notat: Et spesielt tilfelle av kontrollerte avbrudd er oppdateringer av dataskjemaet der typekodingen, for eksempel konvertering fra ASCII - koding til UTF - koding. Her kan ikke persistert data brukes som før, men må istedet oversettes til det nye kodeformatet.\\
-
-%\textit{Vinkel 2}
-
-%I dette prosjektet skal et verktøy for handtering av \underline{kontrollerte tjeneravbrudd} (spesielt ord som bør defineres bedre) implementeres og testes. \textbf{Spørreord: Hvem? Jeg; Hva? Hvorfor? Hvilke? Når?}
-
-%\newpage
+% Problem definition. The purpose of this thesis is to evaluate the possibility of incorporating the join operation in a NoSQL system. This includes how to formulate joins in the query language or API. We would like to know if the lack of join operation in NoSQL databases is due to architectural decisions, making join hard to implement, or if it is straightforward to include it. The work will focus on a single node since distributed join is considered hard to implement, and will not bring forward issues which are specific to NoSQL databases only.
