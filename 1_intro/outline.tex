@@ -8,4 +8,6 @@ Det tredje kapitlet beskriver et knippe oppgraderingsverktøy som på hvert sitt
 
 Kapittel 4 kalles for \emph{Levende oppgradering av datamodeller realisert med Project Voldemort}. Dette kapitlet vil presentere systemdesignet rundt en kommersiell webapplikasjon kalt ''DBUpgradinator'', som kan inndeles i en frontend-del med presentasjonslogikk formet av CSS - og JS - filer og en backend-del med kontroll-logikk skrevet i Java som ved hjelp av serialisering med binærdatakodingsbiblioteket Apache Avro snakker med datalageret, en instans av den distribuerte oppslagstabellen Voldemort. I kapittel 4 blir også en kontinuerlig oppdateringsleveranseløsning for hele applikasjonen, inklusive dets implisitte dataskjema, skissert.
 
+Kapittel 5 beskriver hvordan måloppnåelse av tidligere beskrevede krav til datamodellevolusjonsverktøyet evalueres. Under testing vil webapplikasjonen DBUpgradinator gjennomgå en patch der den implisitte datamodellen sett fra applikasjonslagets perspektiv blir endret samtidig som en mengde genererte forespørsler tilsendes tjenerne slik at en vanlig arbeidslast med spørringer simuleres.
+
 I kapittel 6 konkluderes evalueringen og i det beskrives forslag til videre kvantitativt feltarbeid som kan bygge på denne analysen.
