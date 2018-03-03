@@ -14,4 +14,3 @@ Tanker om programmeringen og modelleringen rundt masteroppgaven
    * AMS2 -> AMS2; LON1; FRA1
    * LON1 -> LON1; AMS1; AMS2
    * FRA1 -> FRA1; AMS1; AMS2
-
