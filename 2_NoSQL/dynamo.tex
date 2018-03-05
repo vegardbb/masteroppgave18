@@ -1,0 +1,19 @@
+\section{Amazon Dynamo}
+
+% Introduksjon/Abstract
+\cite{decandia2007} presenterer arkitekturen til Dynamo, et høytilgjengelig, distribuert nøkkel-verdi-lager som ved nettverkspartisjoner ofrer replikakonsistens til fordel for å være mottakelig for lese - og skriveforespørsler fra diverse mikrotjenester som lever i Amazons applikasjoner. I kjernen av problemet denne distribuerte databasearkitekturen forsøker å løse ligger et sterkt krav til at enhver kunde av Amazons netthandel alltid skal kunne legge artikler i handlekurven. Handlekurven i nettbutikken, så vel som hver eneste artikkel i nettbutikken skal til enhver tid kunne interageres med. Ethvert avbrudd i denne tjenesten kan og vil medføre monetære tap enten direkte i form av utsatte handler og indirekte i form av øøkende mistro hos forbrukerne. Amazon.com er samlet sett en gigantisk, distribuert netthandelapplikasjon bestående av mange tusen nettverkskomponenter og uavhengige tjenere spredt utover mange datasentre. I denne infrastrukturen er feil som oppstår i enkeltkomponenter normen, ikke unntaket.
+
+% Hva er motivasjonene bak utviklingen av systemet / What is the motivation for the research/development?
+Amazon.com er en av verdens største netthandelplattformer. På det meste handler 10 millioner brukere på nettbutikken samtidig.
+
+% Hvilket problem løser Dynamo? / What is the domain (area) of the problem being solved?
+% Hva er artikkelens hovedbidrag? / Which techniques are developed (presented) in the paper?
+% What are the implications applications of Dynamo? / konsekvenser?
+
+% Styrker og svakheter
+Dynamos ring av noder som lagrer data er et likemannsnettverk.
+
+% Teknikker:
+%   Consistent Hashing
+%   Quorum-spørringer
+%   Konflikt - resolusjon: Hvorfor bruke vektorklokker når man like så godt kan bruke Lamport-klokker/tidsstempler?
