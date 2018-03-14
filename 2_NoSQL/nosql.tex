@@ -1,9 +1,9 @@
-\section{Aggregatorienterte datamodeller (også kjent som NoSQL)}
+\section{Aggregatorienterte datamodeller}
 
-% Kanskje jeg bør forklare ytterligere hva aggregat-orientert betyr?
-Ifølge \cite{sadalage2013} kan nøkkel-verdi-lagre (eng. key-value store), kolonnefamilelagre (eng. column family store) og dokumentlagre (eng. documents store) ordnes under én og samme ''art'' av NoSQL-databaser: Aggregatorienterte databasesystem (eng. aggregate oriented databases).
+% Først, introduser og definer begrepet ''aggregatorientert datamodell'' - Kanskje jeg bør forklare ytterligere hva det betyr?
+Ifølge \cite{sadalage2013} kan nøkkel-verdi-lagre (eng. key-value store), kolonnefamilelagre (eng. column family stores) og dokumentlagre (eng. documents stores) ordnes under én og samme ''art'' av NoSQL-databaser: Aggregatorienterte databasesystem (eng. aggregate oriented databases).
 
-Den enkle måten å forklare hva det vil si å ha en aggregatorientert datamodell er ved å beskrive hva det ikke er. I den relasjonelle datamodellen deles forskjellige former for informasjon inn i relasjoner, og tilhørende data inndeles i atomiske, disjunkte enheter kalt \emph{tupler}. En tupel er en flat, endimensjonal liste av verdier som hver korresponderer til nøyaktig ett attributt av relasjonen tupelen er lagret i.
+Den enkleste måten å forklare hva en aggregatorientert datamodell er, er ved å beskrive hva det ikke er. I den relasjonelle datamodellen deles forskjellige former for informasjon inn i relasjoner, og tilhørende data inndeles i atomiske, disjunkte enheter kalt \emph{tupler}. En tupel er en flat, endimensjonal liste av verdier som hver korresponderer til nøyaktig ett attributt av relasjonen tupelen er lagret i.
 
 Det foreligger derfor visse begrensinger på denne datastrukturen. Til eksempel kan ikke en enkelt tupel nøstes inn i en annen, og hvert attributt i tupelen har én atomisk korresponderende verdi, aldri en liste av verdier. Her kan man kontre med at nyere versjoner av MariaDB støtter JSON-objekter som datatype. JSON-objekter er potensielt komplekse dataenheter som kan inneholde nøstede datastrukturer. Men et objekt ansees av datalageret som én kohesiv, helhetlig dataenhet i form av streng, så det argumentet faller. Ettersom tupler er den laveste dataenheten i den relasjonelle modellen kan man si at spørringer opererer med og returnerer (et helt antall) tupler \citep{sadalage2013}.
 
@@ -26,16 +26,24 @@ Aggregatorienterte databasesystemer innehar ikke ACID - egenskapene på samme vi
 % Skriv om tre ulike aggregat - orienterte datamodeller
 Fowler og Sadalage omtaler tre datamodeller som opererer med aggregater. Nøkkel-verdimodellen behandler aggregat som en ugjennomsiktig helhet \citep{sadalage2013}. Altså går det ikke an å hente deler av aggregatet ved et nøkkeloppslag. Dokumentmodellen eksponerer aggregatet til databasen, og tillater dermed delvise spørringer. I og med at dokumentmodellen også er skjemaløs går det ikke an å optimalisere spørringer på hele eller deler av aggregatet. Kolonnefamilier inndeler aggregatet i grupper, noe som tillater databasen å operere på hver av disse gruppene som en egen dataenhet, lik som attributter i tuplene i den relasjonelle modellen. Selv om kolonnefamilier gir opp full skjemaløshet, har databasen nå mulighet til å nytte eksponeringen av attributter/kolonner til å optimalisere aksesseringer.
 
-Semistrukturerte datamodeller, en iboende egenskap i de aggregatorienterte modellene \cite{sadalage2013} presenterer, gir den som er interessert i rullerende oppgradering av distribuerte webapplikasjoner en svært fleksibel vei hva angår dataskjema-oppgradering. Sett fra databasetjenesten sitt perspektiv er det ikke noe i veien for at strukturen i ''verdiene'' tilknyttet nøklene i datalageret ikke er samstemte seg imellom, i motsetning til den rigide ordningen av tupler i relasjonsdatabaser som MariaDB og PostgresSQL. Det er nemlig ikke alle typer skjemaendringer som lar seg utføres i databasetjenere på rullerende vis. Et gjenstående problem med rullerende applikasjonsoppdatering er, uansett hvor strukturert applikasjonens datamodell er, at mens node etter node skiftes ut til en ny instans vil instanser av den oppgraderte applikasjonstjeneren generelt sett respondere på brukerforespørsler på en annerledes måte enn instanser av den gamle versjonen som ennå ikke er oppgradert. Dette problemet er kjent under navnet ''Mixed Version Race'', som er et gjennomgående tema i \cite{dumitras2010upgrade,dumitracs2009upgrades}.
+% TODO: Flytt dette avsnitt til separat diskusjonsdel i kapittel 3 om hvordan NoSQL-modeller kan nyttes ved oppgradering av distribuerte systemer
+& Semistrukturerte datamodeller, en iboende egenskap i de aggregatorienterte modellene \cite{sadalage2013} presenterer, gir den som er interessert i rullerende oppgradering av distribuerte webapplikasjoner en svært fleksibel vei hva angår dataskjema-oppgradering. Sett fra databasetjenesten sitt perspektiv er det ikke noe i veien for at strukturen i ''verdiene'' tilknyttet nøklene i datalageret ikke er samstemte seg imellom, i motsetning til den rigide ordningen av tupler i relasjonsdatabaser som MariaDB og PostgresSQL. Det er nemlig ikke alle typer skjemaendringer som lar seg utføres i databasetjenere på rullerende vis. Et gjenstående problem med rullerende applikasjonsoppdatering er, uansett hvor strukturert applikasjonens datamodell er, at mens node etter node skiftes ut til en ny instans vil instanser av den oppgraderte applikasjonstjeneren generelt sett respondere på brukerforespørsler på en annerledes måte enn instanser av den gamle versjonen som ennå ikke er oppgradert. Dette problemet er kjent under navnet ''Mixed Version Race'', som er et gjennomgående tema i \cite{dumitras2010upgrade,dumitracs2009upgrades}.
+
+% TODO: Flytt også dette avsnitt til kapittel 3, da denne informasjonen er mest relevant for diskusjonen rundt prosjektoppgaven
+% I diskusjonen om hvordan semistrukturerte datamodeller kan oppgraderes uten å avbryte tjenesteleveranse i produksjonsmiljøet, er visse fakta om aggregatorienterte datamodeller og NoSQL - modeller forøvrig, relevante å komme i hu. Slike databaser har ingen semantisk formening om data som lagres, de bare lagres på en eller flere lagerinstanser i et distribuert system. Selve meningen til de dataobjektene handteres og utvikles i selve applikasjonen sammen med dets kildekode. I datalagerdelen av systemets arkitektur er disse objektene ofte representert som JSON-strenger, ProtoBuf-objekter, Avro-objekter og så videre.
+
+
 
 % TODO: Mer om aggregatorienterte databasesystem
 % Nøkkel-verdi-lagre
 %  Dynamo - V
-%  Riak
+%  Project Voldemort
 %  Redis / KVolve
 % Kolonnefamilielagre
 %  Cassandra
 % Hvordan høy tilgjengelighet oppnåes i NoSQL - databasearkitekturer
 %  PACELC
 %  BASE
-% Dynamo - feiltoleranse gjennom replikering
+%  Dynamo - feiltoleranse gjennom replikering (2.2)
+
+%\subsection{Nøkkel-verdi-modellen}
