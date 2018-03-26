@@ -1,3 +1,4 @@
 1 - nosql
 2 - dynamo
 3 - voldemort
+4 - Migrasjon og skjemaevolusjon i relasjonelle databaser og NoSQL - databaser
