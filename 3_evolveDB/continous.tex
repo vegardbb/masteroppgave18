@@ -1,0 +1,16 @@
+% Kapittel 3.2 - Kontinuerlig leveranse
+\section{Kontinuerlig leveranse}
+
+% Kjelde https://blog.philipphauer.de/databases-challenge-continuous-delivery/
+
+% TODO: legg inn gamle notater om kapitlet her
+% 3.3 - Levende oppgradering av 
+% TODO: Flytt dette avsnitt til separat diskusjonsdel i kapittel 3 om hvordan NoSQL-modeller kan nyttes ved oppgradering av distribuerte systemer
+Semistrukturerte datamodeller, en iboende egenskap i de aggregatorienterte modellene \cite{sadalage2013} presenterer, gir den som er interessert i rullerende oppgradering av distribuerte webapplikasjoner en svært fleksibel vei hva angår dataskjema-oppgradering. Sett fra databasetjenesten sitt perspektiv er det ikke noe i veien for at strukturen i ''verdiene'' tilknyttet nøklene i datalageret ikke er samstemte seg imellom, i motsetning til den rigide ordningen av tupler i relasjonsdatabaser som MariaDB og PostgresSQL. Det er nemlig ikke alle typer skjemaendringer som lar seg utføres i databasetjenere på rullerende vis. Et gjenstående problem med rullerende applikasjonsoppdatering er, uansett hvor strukturert applikasjonens datamodell er, at mens node etter node skiftes ut til en ny instans vil instanser av den oppgraderte applikasjonstjeneren generelt sett respondere på brukerforespørsler på en annerledes måte enn instanser av den gamle versjonen som ennå ikke er oppgradert. Dette problemet er kjent under navnet ''Mixed Version Race'', som er et gjennomgående tema i \cite{dumitras2010upgrade,dumitracs2009upgrades}.
+
+% TODO: Flytt også dette avsnitt til kapittel 3, da denne informasjonen er mest relevant for diskusjonen rundt prosjektoppgaven
+I diskusjonen om hvordan semistrukturerte datamodeller kan oppgraderes uten å avbryte tjenesteleveranse i produksjonsmiljøet, er visse fakta om aggregatorienterte datamodeller og NoSQL - modeller forøvrig, relevante å komme i hu. Slike databaser har ingen semantisk formening om data som lagres, de bare lagres på en eller flere lagerinstanser i et distribuert system. Selve meningen til de dataobjektene handteres og utvikles i selve applikasjonen sammen med dets kildekode. I datalagerdelen av systemets arkitektur er disse objektene ofte representert som JSON-strenger, ProtoBuf-objekter, Avro-objekter og så videre.
+
+%  PACELC
+%  BASE
+%@misc{bozic2015, title={cassandra-migration-tool-java/README.md}, url={https://github.com/smartcat-labs/cassandra-migration-tool-java/blob/develop/README.md}, journal={GitHub}, publisher={SmartCat}, author={Gobec, Matija and Bozic, Nenad}, year={2015}, month={May}, day={19}}

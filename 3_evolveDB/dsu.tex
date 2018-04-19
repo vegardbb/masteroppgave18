@@ -1,0 +1,21 @@
+\subsection{Dynamisk programvareoppdatering (DSU)}
+
+\cite{hicks2005dsu} introduserer et generelt, fleksibelt, og effektivt oppdateringsrammeverk for å oppdatere en kjørende programvareprosess, kalt \emph{Dynamic Software Upgrade}. Artikkelen er en utvidet versjon fra et foredrag Michael Hicks holdt for ACM i 2001.
+
+Én ofte benyttet tilnærming for å innføre online oppgradering er å installere oppdaterte versjoner av programmet på reserve-tjenere som kan settes ut i produksjon umiddelbart hvis den aktive produksjonstjeneren utsettes for et feilscenario \citep{hicks2005dsu}.
+
+For eksempel benyttet Visa tidlig på 2000-tallet hele 21 store datamaskiner til å kjøre sitt transaksjonsprosesseringssystem (TPS) på. Ved oppgradering ble den enkelte instansen sin tilstandsdata bevart mens de enkelte prosessene ble byttet ut. Transaksjonsprosesseringssystemet til Visa opererte per 2001, ifølge \cite{hicks2005dsu}, med et oppetidkrav på 99.5 \%, men gjennomgikk tusenvis av mindre oppdateringer per år. Denne maskinbundete oppgraderingsteknikken er nødvendigvis meget dyr og gjør utviklingsprosessen for de som vedlikeholder programvare ekstra tungvint. Dette grunnet den nødvendige rutinen med å overføre tilstandsdata fra en gammel applikasjonstjener til en ny og nødvendigheten av å kjøpe inn og starte opp en ny maskin hver gang en oppdatering skal installeres \citep{hicks2005dsu}.
+
+DSU – rammeverket omgår de ekstra oppgraderingskostnadene skissert i avsnittet ovenfor. \cite{hicks2005dsu} beviser at det innehar fire forskjellige kvaliteter: Fleksibilitet (en hvilken som helst komponent i systemet kan oppdateres uten at hele systemet må slåes av); robusthet (systemet minimaliserer risikoen for systemfeil ved oppdatering); brukbarhet (oppgraderingsprosessen er enkel å forstå); ytelse (oppgraderingsprosessen skal ikke utføres på bekostning av systemet tjenesteevne).
+
+Gyldighetsområdet til DSU – Rammeverket er ment å være programvaren på én enkelt maskin, det kan med andre ord ikke brukes på for eksempel for distribuerte databaseinstanser tilhørende en webapplikasjon. Endringer i lagringsstrukturen påkrever en koordinert oppdatering av alle applikasjonsinstanser som kommuniserer mot den kjørende databasens grensesnitt.
+
+Systemer som oppdaterer dynamisk bruker litt tid på starte opp en ny prosessnode og å overføre data fra den gamle til den nye, men kan samlet sett redusere oppgraderingstiden vis-a-vis distribuerte systemer som implementerer online-oppgradering ved hjelp av varme reserver, det vil si en annen fysisk maskin som overtar arbeidet fra tjeneren med den gamle applikasjonen.
+
+En dynamisk oppdatering gjennomføres ved å starte den nye overtakende prosessen, fryse tilstanden til det opprinnelige programmet og overføre tilstandsdata over til den nye, blanke prosessen, og til sist fase ut den gamle til fordel for den nye. Det mest sentrale elementet i denne prosessen er en rutine for å sammenlikne semantiske forskjeller mellom de to versjonene og for å finne ut hvordan oppførselen til den nye versjonen er forskjellig fra den gamle.
+
+Ved en dynamisk oppdatering må applikasjonsdata i den gamle, kjørende versjonen overføres til den nye, innkommende versjonen overføre defineres en tilstandstransformasjonsfunksjon som kan transponere en tilstandsvariabel fra den gamle versjonen til en tilsvarende verdi for den nye.
+
+\cite{hicks2005dsu} omtaler to forskjellige måter å implementere dynamisk oppdatering, eller ''dynamic patching'', som det også kalles. Den første innebærer å først kompilere den nye versjonen fra den endrede kildekoden, instansiere den nye versjonen i en egen prosess på lik linje med prosessen til den gamle versjonen av programmet, og deretter beordre sistnevnte til å overføre sine tilstandsdata over til prosessen som kjører den nye versjonen. Etterpå bruker den nye versjonen tidligere nevnte transformeringsrutine for å konvertere tilsendte tilstandsdata. Så vil den nye prosessen begynne sin kjøretid med de transformerte dataene fra tidligere.
+
+Den andre måten går ut på å lenke oppdateringen inn i den eksiterende, kjørende prosessen, transformere tilstandsdata der de er (her blir tilstanden kopiert til en annen adresse i prossessens adresserom i minne) og deretter endre koden prosessen kjører fra direkte ved hjelp av lenken.
