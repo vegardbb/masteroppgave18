@@ -15,7 +15,6 @@ I versjon 11.2 av Oracle definerer \cite{choi2009} til i alt tre nye konsepter f
   \item Triggere på tvers av utgaver (Cross Edition Triggers). For å synkronisere data forskjellige utgaver ikke har tilfelles brukes triggere. Dataendringer som inntreffer hos tupler tilhørende eldre utgaver propageres til kolonnene nye utgaver leser ifra, og vice versa
 \end{itemize}
 
-
 Meningen med utgaver er å sette opp et isolert miljø slik at mengden av kodeobjekter (instanser fra kildekoden) som trygt kan endres i tandem gjøres således. Å inkludere dataverdier i seg selv i dette miljøet vil åpenbart medføre mange unødige, tunge dataoperasjoner i den grad datatupler dermed må oppdateres og kopieres fram og tilbake for hver opp - eller nedgradering. Derfor behandles kolonner og tabeller som statiske elementer, åpent synlig for alle versjoner. Således blir deling av data enklere. Semantisk sett må det gå raskt å opprette nye utgaver, men samtidig må tilstanden til koden pre-patch også være tilgjengelig for nye utgaver \citep{choi2009}. Utgaver innehar derfor følgende semantikk:
 
 \begin{enumerate}

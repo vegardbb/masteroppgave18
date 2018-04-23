@@ -1,8 +1,7 @@
-\section{KVolve - hvordan endre NoSQL - datamodeller uten nedetid}
+\section{KVolve: Evolusjon av datamodeller uten nedetid}
 
 Den første artikkelen som presenteres i dette kapitlet handler om levende oppdatering av datamodellen til høytilgjengelige webapplikasjoner uten tjenesteavbrudd eller ytelsesdemping, der et nøkkel-verdi-datalager (her representert ved Redis) brukes til å persistere applikasjonens data. Selv om nøkkel-verdi-datalagre er skjemaløse, påfører webapplikasjonen datamodellen gjerne en logisk aggregatstruktur realisert med spesielle dataformat, som protokollbufre, Avro - objekt eller JSON - dittoer \citep{saur2016}.
 
-\subsection{Bakgrunn}
 Nye funksjonelle krav som spesifiseres for webapplikasjoner medfører ofte endringer i datamodellen.  Typiske endringer i aggregatet inkluderer fjerning av, gi nytt navn til eller tillegging av ett eller flere attributter. Dataformatet til aggregatet kan også bli endret fra for eksempel JSON til Apache Thrift. Sistnevnte innehar for øvrig støtte for versjonering og sporing av ''dataformatet''.
 
 Den typiske metoden å implementere slike oppdateringer i NoSQL - datamodellen er å migrere dataene fra den gamle datamodellen, slå av samtlige noder i tjenesten, installere oppdateringen, konvertere dataene til å passe den nye modellen, og deretter importere dataene inn i den oppdaterte databasen. Dette medfører selvsagt nedetid i systemet, som tradisjonelt sett kan bortdefineres (jamfør kapittel 2.1), da vedlikeholdsarbeid gjøres på et tidspunkt ingen behøver systemets tjenester.

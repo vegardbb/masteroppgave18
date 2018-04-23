@@ -1,23 +1,40 @@
 % Kapittel 3.2 - Kontinuerlig leveranse
 \section{Kontinuerlig leveranse}
 
-% Kjelde https://blog.philipphauer.de/databases-challenge-continuous-delivery/
+Blogginnlegget til \cite{hauer2015} handler om behandling av databaser i en applikasjonlivssyklus der utviklingsmetodikken ''Kontinuerlig Leveranse'' (eng. ''Continous Delivery'') gjennomføres. For hver gang ny kode skal kjøres på applikasjonstjenerne må databasksjemaet og følgelig eksisterende data oppdateres på samtlige databaseinstanser før applikasjonsoppdateringen kan selv tre i kraft.
 
-% TODO: legg inn gamle notater om kapitlet her
-% 3.3 - Levende oppgradering av 
-% TODO: Flytt dette avsnitt til separat diskusjonsdel i kapittel 3 om hvordan NoSQL-modeller kan nyttes ved oppgradering av distribuerte systemer
+I webapplikasjoner med mange brukere opparbeides mye lagret data over tid. Følgelig blir datamigrasjoner som følge av endringer av applikasjonslogikken også mer tidkrevende. Hvis det stilles høye tilgjengelighetskrav til webapplikasjonen kan ikke denne migrasjonsprosessen utføres i ett, langtekkelig steg. Når denne migrasjonsprosessen er ferdig utført er det minst like tidkrevende å ''rulle tilbake'' disse endringene, og det lar seg nødvendigvis ikke alltid gjøre. Dette er særlig tilfellet i produksjonsmiljø der databasesystemet integrerer data fra flere separate uavhengige applikasjoner, for eksempel et intranett for et firma med ett eneste databasesystem som handterer data både for salgsavdelingen og varebeholdningsavdelingen. Således anbefaler \cite{hauer2015} å separere datakilder i en mikrotjenestearkitektur og derfor benytte et persisteringsmønster \cite{sadalage2013} refererer til som ''polyglot persistance''.
+
+I et kontinuerlig leveransemiljø med relasjonelle datamodeller anbefaler \cite{hauer2015} å gjøre skjemaendringer ''backwards compatible'', altså at den nye versjonen av dataskjemaet kan brukes av applikasjonslogikken som er koplet til det gamle databaseskjemaet. Et eksempel er fjerning av et attributt fra en tuppel. Denne endringen er ikke direkte bakoverkompatibel. Derfor må denne endringen oppdeles i et sett med endringer: Først må attributtet defineres til ikke å ha en påkrevd verdi, på fagspråket kalt ''nullable''. Dernest må applikasjonslogikken på hver appliaksjonstjener oppdateres slik at attributtet ikke etterspørres. Til sist kan det ubrukte attributtet fjernes fra databaseskjemaet.
+
+\subsection{Skjemaendringer og datamigrasjon i NoSQL-databaser}
+
+NoSQL-datamodeller har til felles at de ikke eksplisitt deklarerer et databaseskjema slik som man ser i Postgres eller MySQL. Ettersom ethvert aggregat kan i prinsippet ha en hvilken som helst objekt-struktur der egne nøstede lister og objekter og hvilke som helst variable er inneholdt. Kort sagt, i et nøkkelverdi kan man lagre det man vil per nøkkel. Skjemaendringer er ikke et vesentlig problem i et kontinuerlig leveranse-utviklingsmiljø. Når man ikke trenger å vite strukturen på dataobjektene som lagres på forhånd, blir kontinuerlig endring og publisering til produksjon av applikasjonen tilsynelatende enklere.
+
+Som \cite{sadalage2013} poengterer at enhver applikasjon som persisterer sine tilstand gjør til enhver tid antakelser på hvordan aggregatet den får tak i per oppslagsnøkler ser ut. Applikasjonens kildekode gjengir et implisitt skjema. Hvis koden er godt nok strukturert, for eksempel ved å definere egne modell-klasser som eksplifiserer applikasjonens dataskjema, vil jobben med å identifisere endringer i applikasjons usynlige dataskjema lettere.
+
+Å migrere data i et høytilgjengelig produksjonsmiljø er dessverre ikke stort lettere med NoSQL enn i relasjonsdatabaser. Migrasjon er en aktivitet som vil nødvendigvis forekomme mye oftere i en kontinuerlig leveranse-livssyklus, og er desto mer tidkrevende jo mer omfattende endringen er. \cite{hauer2015} demonstrerer to endringsscenarier der levende datamigrasjon må utføres:
+
+\begin{description}
+  \item [Enkel endring i datamodellen] Et eksempel på en enkel datamodellendring er å endre datatypen til attributtet ''postNummer'' i \texttt{Kunde} - aggregatet fra heltall til streng, jamfør modellen i \ref{fig2}. Så lenge applikasjonen klarer å handtere den eksisterende datatypen for attributtet så vel som den nye så trenger vi ikke å oppdatere data som allerede er lagrert i databasesystemet, med mindre de absolutt \textbf{må} være konsistente med den nye applikasjonsversjonen.
+  \item [Kompleks endring i datamodellen] Herunder inkluderes omarrangering av strukturen til aggregatet applikasjonen bruker, som endring av objektnøstingen oppsplitting eller fletting av aggregater. Jamfør \ref{fig2}, et eksempel på en slik kompleks endring kunne være å tillate en kunde å registrere flere leveringsadresser istedet for bare én.
+\end{description}
+
+Den sistnevnte endringen er ofte en nødvendig handling for å ''endre'' spørringer til databasen. I prinsippet kan man ikke ''endre'' spørringer i NoSQL-modellen, det finnes bare én type lesespørring og én skrivespørring. Følgelig blir programvareutviklere nødt til å strukturere aggregatet til å passe med de funksjonelle krav som stilles til spørringer i databasen. Når de funksjonelle kravene til applikasjoner hvis datamodeller er aggregatbaserte endres, så vil krav til spørringsresultater endres deretter og følgelig må datastrukturen til aggregatet som lagres også endres. Den logiske konklusjonen, som \cite{hauer2015} påpeker, er at omfattende datamigrasjoner gjøres oftere hvis datamodellen er enten delvis strukturert eller totalt ustrukturert, enn i strengt strukturerte datamodeller.
+
+Der semistrukturerte datamodeller har stor \underline{skjemafleksibilitet} har strengt strukturerte datamodeller stor \underline{spørringsfleksibilitet} (gitt at de er normaliserte). I SQL-databaser trenger man ikke endre databaseskjemaet, metadataene som beskriver relasjonene i databasen, for hver bidige gang de funksjonelle kravene endres. Grunnen til det er at spørringene kan endres ved hjelp av \texttt{SELECT} og \texttt{JOIN} - operandene, i tillegg til aggregeringsoperander tilbudt av spørringsgrensesnittet.
+
+% Hvordan NoSQL-modeller kan nyttes ved oppgradering av distribuerte systemer
 Semistrukturerte datamodeller, en iboende egenskap i de aggregatorienterte modellene \cite{sadalage2013} presenterer, gir den som er interessert i rullerende oppgradering av distribuerte webapplikasjoner en svært fleksibel vei hva angår dataskjema-oppgradering. Sett fra databasetjenesten sitt perspektiv er det ikke noe i veien for at strukturen i ''verdiene'' tilknyttet nøklene i datalageret ikke er samstemte seg imellom, i motsetning til den rigide ordningen av tupler i relasjonsdatabaser som MariaDB og PostgresSQL. Det er nemlig ikke alle typer skjemaendringer som lar seg utføres i databasetjenere på rullerende vis. Et gjenstående problem med rullerende applikasjonsoppdatering er, uansett hvor strukturert applikasjonens datamodell er, at mens node etter node skiftes ut til en ny instans vil instanser av den oppgraderte applikasjonstjeneren generelt sett respondere på brukerforespørsler på en annerledes måte enn instanser av den gamle versjonen som ennå ikke er oppgradert. Dette problemet er kjent under navnet ''Mixed Version Race'', som er et gjennomgående tema i \cite{dumitras2010upgrade,dumitracs2009upgrades}.
 
-% TODO: Flytt også dette avsnitt til kapittel 3, da denne informasjonen er mest relevant for diskusjonen rundt prosjektoppgaven
 I diskusjonen om hvordan semistrukturerte datamodeller kan oppgraderes uten å avbryte tjenesteleveranse i produksjonsmiljøet, er visse fakta om aggregatorienterte datamodeller og NoSQL - modeller forøvrig, relevante å komme i hu. Slike databaser har ingen semantisk formening om data som lagres, de bare lagres på en eller flere lagerinstanser i et distribuert system. Selve meningen til de dataobjektene handteres og utvikles i selve applikasjonen sammen med dets kildekode. I datalagerdelen av systemets arkitektur er disse objektene ofte representert som JSON-strenger, ProtoBuf-objekter, Avro-objekter og så videre.
 
 %  PACELC
 %  BASE
-%@misc{bozic2015, title={cassandra-migration-tool-java/README.md}, url={https://github.com/smartcat-labs/cassandra-migration-tool-java/blob/develop/README.md}, journal={GitHub}, publisher={SmartCat}, author={Gobec, Matija and Bozic, Nenad}, year={2015}, month={May}, day={19}}
 
-%\input{3_evolveDB/cassandra} % Kjelde: https://github.com/smartcat-labs/cassandra-migration-tool-java
+% Kjelde: https://github.com/smartcat-labs/cassandra-migration-tool-java
+\subsection{Migrasjonsverktøy for Cassandra}
 
-%\section{Kontinuerlig leveranse}
-% Skriv om Cassandra sitt verktøy her \cite{}
-%\ldots
-% Slutt på seksjon 3.3
+I migrasjonsverktøyet \emph{cassandra-migration-tool-java}, som er et tredjepartsverktøy til Apache Cassandra for databaseadministratorer, gjøres versjoner av det implisitte skjemaet til en applikasjon eksplisitt, og lagres i en separat metadatatabell, kalt \texttt{schema_version}, i form av en identifikatorstreng og et tidsstempel \citep{bozic2015}. Verktøyet, som er åpent tilgjengelig på GitHub, kan utføre to forskjellige migrasjoner: Skjema-migrasjoner, der databaseskjemaet (tillegg og fjerning av attributter, tillegg av ''tabell'') endres, og datamigrasjoner (endringer av eksisterende aggregat i databasen) \citep{bozic2015}. Ved skjemamigrasjon er det, iallfall for modulens forfattere, kritisk for programmet å sikre oppdateringskonsistens i databaseklyngen hvis databaseadministratoren har behov for det. 
+
+Derfor er en konsensusprotokoll implementert der alle spørrende klienter nødvendigvis må aktivt vente på at alle databasenoder har migrert ferdige sine egne skjema før de kan sende lese - og skriveforespørsler. Konsekvensen av ikke å føre en slik konsistenskontroll på replikanivå er at applikasjonsklientene eksponeres for versjonmiksen i datalageret, noe som åpner for versjonskappløp replikaeneimellom per nøkkel ved både lese - og skriveoperasjoner.
