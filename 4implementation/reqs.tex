@@ -1,0 +1,38 @@
+\section{Krav til implementasjon av levende datamigrasjonsløsning}
+
+Her følger de funksjonelle og ikke-funksjonelle krav som stilles til programvaremodulen som skal kunne migrere data fra et implisitt aggregatskjema til det neste uten stans i dataleveranser på brukernes tjenesteforespørsler.
+
+\subsection{Antakelser}
+
+I kraft av å demonstrere et praktisk konsept vil modulen gjøre visse antakelser om programvarearkitekturen til den jevne webapplikasjon DBUpgradinator kommer til å operere i. Enkelte av disse fordringene er gjort for å gjøre den objekt-orienterte implementasjonen av datamodellevolusjonsløsningen mindre parametrisert og derfor enklere og skrive og enklere å forstå.
+
+For å realisere tillatelsen av versjonsmiks mellom forskjellige applikasjonstjenere i webapplikasjonen DBUpgradinator er installert i vil dets implementasjon ikke oppdatere aggregater direkte, men heller lage et nytt et med et annerledes streng-prefiks. Følgelig vil den samme ''tuppelen'' lagres dobbelt opp hvis miksen av skjemaversjoner er av størrelse 2.
+
+En annen vesentlig antakelse om programvarearkitekturen til systemet DBUpgradinator skal operere i er at databaseklientprogrammer lever i en adskilt prosess fra prosessen til applikasjonstjeneren. Dette designvalget ble tatt for å fullstendig separere 
+
+Her listes øvrige antakelser for prototypeimplementasjonen av DBUpgradinator, databasen den kommer til å operere på, webapplikasjonen den testes i, og produksjonsmiljøet DBUpgradinator testes i.
+
+\begin{itemize}
+  \item Dataobjekter serialiseres 'client' side, altså er lagringsnodene 'dumme' og backend-tjenerne 'smarte'
+  \item Serialisering (Voldemort): \underline{String}, altså ser den enkelte databasetjener kun strenger og kan ikke lese av skjemaet
+  \item Applikasjonsstakken til Voldemort-instansen denne oppgaven tester har en fast konfigurasjon
+  \item Nøkler i skjemaet endrer ikke type eller form
+  \item Dataobjekter har en skjema-versjonstag brukt til å sjekke om tuppelen må oppgraderes
+  \item Fordi modulen i prinsippet må være skjemaopplyst må den implementeres som en del av applikasjonslogikken
+  \item Oppdateringsspesifikasjoner kan kjedes sammen, denne kjeden har Migrator-klassen styr på, altså er det Migrator-klassen som har en tilstandvariabel en som en lenket liste av AbstractAggregateTransformer-objekter
+  \item Akkurat som med KVolve blir ikke disse transformeringsobjektene fjernet når alle aggregatene lagret på det gamle skjemaet er migrert ferdig
+  \item Applikasjonen, skrevet i Java, holder styr på sitt implisitte skjema gjennom eksplisitt versjonering og eksplisitt deklarering av aggregatets modell ved å definere en egen Aggregate-klasse
+  \item Webapplikasjonens utviklere programmerer på et eget lokalt utviklingsmiljø
+  \item I serversiden er tupler lagret med nøkler på form k:x, der suffikset x indikerer skjemaversjonen. Disse dataobjektene har ingen separate versjonsfelt idet de sendes Voldemort-serveren
+  \item Den enkelte utvikler har ikke behov for å endre nøkkelens struktur eller datatype
+  \item Alle nøkler Voldemort mottar er på strengform, selv om nøkler i praksis også kan være en liste av binærdata, derfor støtter ikke DBUpgradinator nedring av nøkkelens skjemastruktur
+  \item Webapplikasjonen som modulen testes i har en RESTful - arkitektur
+\end{itemize}
+
+\textbf{Funksjonelle krav}. DBUpgradinator er en modul som skal kjøre i produksjonsmiljøet til en webapplikasjon skrevet i Java.
+
+\begin{itemize}
+  \item DBUpgradinator skal lage én ekstra databasespørring for hvert nye sett med transformasjoner som påføres et aggregat - et aggregat skal kunne gjennomgå flere transformasjonssteg i ett
+  \item 
+  \item 
+\end{itemize}

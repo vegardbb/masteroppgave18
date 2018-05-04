@@ -31,7 +31,7 @@ Innen datateknologi er serialisering prosessen der objekter eller datastrukturer
 
 Serialisering av minnebaserte datastrukturer er en ganske vanlig oppgave i distribuerte systemer og applikasjonsprotokoller, og derfor kan dette gjøres i mange programmeringsspråk. I Java blir klasser som implementerer grensesnittet java.io.Serializable automatisk serialisert. I Python brukes modulen pickle fra standardbiblioteket til samme formål. I PHP nyttes funksjonen \texttt{serialize()} til serialisering og \texttt{unserialize()} til parsing. I JavaScript er JSON - objektet, med dets to metoder \texttt{parse()} og \texttt{stringify()} innebygd i språket. JSON - protokollen er nemlig basert på et subsett av JavaScript. Følgelig kan en hvilken som helst datastruktur formet i JSON - syntaksen oversettes til JavaScript - syntaks.
 
-Hos Voldemort serialiseres dataobjekter før de lagres. Ved å serialisere data kan man garantere at datalageret er helt og holdent uvitende om hva det er sekvensene av 1-ere og 0-ere som blir lagret står for. Applikasjonsutviklere som benytter Voldemort som sin database kan bruke en av mange forskjellige teknikker, eventuelt implementere sin egen. Serialisering sies å være -pluggbart- i Voldemort, slik at man står fritt til å bruke serialiseringsrammeverk som Apache Avro, Googles ProtoBuf, Apache Thrift og Javas serialiseringsgrensesnitt som tidligere nevnt \citep{kreps2009}. Ved hjelp av serialisering kan komplekse datastrukturer som lister og navngitte tupler benyttes som både nøkler og verdi for de enkelte rader.
+Hos Voldemort serialiseres dataobjekter før de lagres. Ved å serialisere data kan man garantere at datalageret er helt og holdent uvitende om hva det er sekvensene av 1-ere og 0-ere som blir lagret står for. Applikasjonsutviklere som benytter Voldemort som sin database kan bruke en av mange forskjellige teknikker, eventuelt implementere sin egen. Serialisering sies å være -pluggbart- i Voldemort, slik at man står fritt til å bruke serialiseringsrammeverk som Apache Avro, Googles ProtoBuf, Apache Thrift og Javas serialiseringsgrensesnitt som tidligere nevnt \citep{kreps2009}. Ved hjelp av serialisering kan komplekse datastrukturer som lister og navngitte tupler benyttes som både nøkler og verdi for de enkelte rader. Et siste konfigurasjonsalternativ som kan nevnes er ''string''-serialisering. Dette alternativet benyttes hvis databaseklienten mottar preformatert data på strengform, og er dermed fullstendig skjemaignorant.
 
 \subsection{Lastbalansering av dataobjekter}
 
@@ -42,10 +42,9 @@ Konsistent hashing - teknikken brukes også i Voldemorts lastbalanseringsalgorit
 
 % Ved svikt i node
 Når en node svikter permanent, vil dets datalast bli omdistribuert til de gjenværende nodene i ringen hvis partisjoner grenser mot de partisjonene av ringen den feilede noden hadde ansvar for, altså omaddresseres aggregater tidligere lagret av en nå feilet og permanent utilgjengelig node. Noder med høyere lagrinskapasitet lagrer flere datatupler fordi de har ansvar for en større brøkdel av ringen av diskrete hashverdier.
-\ldots
 
 % Figur 4
-\begin{figure}[ht]
+\begin{figure}[!ht]
     \centering
     \includegraphics{fig/hashring.png}
     \caption{Eksempel på konsistent hashring i Project Voldemort. Node A lagrer nøkler med hashverdi 0--15, B lagrer nøkler hvis hashverdi er mellom 16 og 31, C lagrer nøkler hvis hashverdi er mellom 32 og 47, og D lagrer nøkler hvis hashverdi er mellom 48 og 63.}
@@ -55,5 +54,4 @@ Når en node svikter permanent, vil dets datalast bli omdistribuert til de gjenv
 Den logiske strukturen til likemannsnettverket av databasenoder i Voldemort har formen til en ring. Denne ringen består av en stor mengde diskrete posisjoner, verdiområdet til en hashfunksjon \emph{h}. Hver node som deltar i databaseklyngen tildeles en gruppe av disse punktene i ringen. \emph{h} brukes til å finne ringposisjonen til en nøkkel \emph{k}. Den noden hvis tilordnede mengde av hashverdier inneholder \emph{h(k)} blir den som lagrer det assosierte dataobjektet til \emph{k}.
 
 Den konsistente hashalgoritmen og ringstrukturen til likemannsnettverket realiserer datareplikering ved å legge antallet påkrevde replikaer, per quorumkonfigurasjonen, på \underline{etterfølgende} noder i ringen, med sola \citep{elmasri2014}. Per \ref{fig4} og konfigurasjonen N=3 vil eksempelvis alle dataobjekter som hashes til node A også kopieres til node B og C.
-\ldots
 

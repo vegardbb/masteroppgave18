@@ -16,7 +16,7 @@ Følgelig gir slike strengt strukturerte datamodeller stor fleksibilitet for sp�
 Ved hjelp av JOIN-operasjoner finner man eksisterende tupler fra forskjellige relasjoner, relatert til hverandre via fremmednøkler, og resultanten av JOINen kan systemet også kalle disse aggregeringsoperasjonene på. NoSQL - databaser har ikke den samme fleksibiliteten til selv å utføre slike spørreoperasjoner: Hver spørring henter kun én dataenhet ad gangen, noe som holder især for nøkkelverdilagre. Hver spørring er logisk sett bare et oppslag på en nøkkel i en hashtabell. Eventuell aggregering der sum, gjennomsnitt eller ekstremalverdier regnes må gjøres i selve applikasjonen, etter at oppslag på \textbf{samtlige} nøkler er gjort i databasen.
 
 % Figur 1
-\begin{figure}[ht]
+\begin{figure}[!ht]
     \centering
     \includegraphics[scale=0.7]{fig/NettbutikkOrdreModell.png}
     \caption{Diagram over tabeller i en relasjonsdatabase som registrerer ordrer fra kunder i en netthandelapplikasjon.}
