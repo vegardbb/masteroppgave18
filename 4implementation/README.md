@@ -13,10 +13,6 @@ Tanker om programmeringen og modelleringen rundt masteroppgaven
 * `package voldemort.tools` (ekstra)
   * En fin idé hadde vært å implementere et konsollbasert spørregrensesnitt eller et annet Admin-verktøy der man kan operere på det implisitte dataskjemaet ved å definere endringer i et ordnet format, noe KVolve savner i sin proof-of-concept-implementasjon
 * `package dbupgradinator.deatheater`
-  * AbstractAggregateTransformer - en abstrakt klasse med en tilstandsvariabel som indikerer applikasjonsversjonen oppgraderingsklassen opererer på og en som indikerer nøkkelverdien til den neste applikasjonen som den transformerte verdien gjelder for; klassen har én abstrakt metoder, som implementeres i subklassen programmert og kompilert til `.class`-fil av den individuelle applikasjonsprogrammerer. Metodens navn er `TransformAggregate`, som påkalles når en forespørsel fra webapplikasjonens gamle versjon (som er under rullerende oppgradering) tilsendes databaseklienten, den påkalles både når klienten mottar data fra datalageret, etter at en `InconsistencyResolver` har flettet divergerende elementer; argumenter: key (fra DB), value (deserialisert), så vel som når klienten mottar data fra applikasjonen, altså fra forespørselen direkte.
-  * AppVersionResolver - hjelperklasse som kopler dataobjektets nøkkel i en innkommende HTTP-spørring (k) med applikasjonsversjonens nøkkel (x) på formen `k + ":" + x`
-  * AggregateTransformerReceiver - frittstående prosess som ikke er del av en spørrings livsløp, men som både mottar AggregateTransformer-objekter og holder rede på dem i versjonsrekkefølge i en privat liste. Har også ansvar for å påkalle transformasjonsmetoden til hvert objekt.
-  * Migrator - `Public` hovedklasse som eksponerer DBUpgradinator sin funksjonalitet til programvareutvikleren. Dens tilstand inkorpurerer aggregatets objekttype - det vil si domeneklassen til aggregatet, som sendes inn i transformasjonsfunksjonen til AbstractAggregateTransformer-klassen som verdi-argument. Transformasjonsfunksjonen blir overridet av den implementerte klassen.
 * `package voldemort.client`
   * DBUpgradinatorStoreClient - Separat databaseklient som importerer de nye klassene fra DBUpgradinator - pakken
   * DBUpgradinatorStoreClientFactory (?)
@@ -42,7 +38,6 @@ Alternativt kan man benytte RMI - Remote Method Invocation, det vil si at hver e
  * Brukernavn for UNIX-brukere på hver av dropletene: avery, black, crabbe, dolohov
  * IDer for lagringstjenere: riddle-diary, slytherin-locket, rawenclaw-diadem, nagini
 
-
 https://shrib.com/#HnKm7VIOBxH.Qt3POwtJ
 
 # Notater til masteroppgaven
@@ -64,9 +59,7 @@ Implementasjon av KVolve sitt design med Voldemort
  - "Intelligent routing"/"smart klient", client side, det vil si backenden til webappen, av databasesystemarkitekturen, 2-hop-system
  - Backend for testapplikasjonen må dermed implementeres i Java
  - Testapplikasjonen etterlikner en netthandel i stil med eksemplene fra Sadalage sin bok
- - Insight: Hver enkelt applikasjonsinstans har kontroll over versjonen av dataskjemaet sitt, som identifiseres ved en hæsjstreng som konkatineres med IDen til hver enkelt dataelement før PUT sendes til databasen
  - Versjonering av data og skjema: avro-generic-versioned; versjonering av tupler er "allerede programmert" i Voldemort
- - Oppgraderingsverktøyet vil opprette en ny tuppel i lageret hvis skjema-versjon-suffiks er annerledes og dataobjekt-ID-prefiks er likens prefikset til tuppelen som oppgraderes. Således kan det distribuerte systemet kjøre en mikset tilstand mens datamigrasjonen foregår.
  - Datamigrasjon kan per inneværende kildekode også utføres med Avro, hvis gitte skjema er forover - og bakoverkompatible
  - Hvis den nye versjonen av skjemaet ikke kan migreres med Avro kan dette verktøyet brukes istedet
  - Transformatoren er et Java - objekt som serialiseres, sendes over Internett til backendtjenerne
@@ -79,12 +72,6 @@ Implementasjon av KVolve sitt design med Voldemort
 ### KVolves mål: Logisk konsistente data for _databaseklienter_
 
 KVolve sitt hovedmål er å realisere levende datamigrasjon i et nøkkel-verdi-lager uten at oppgraderingsprosessen går ut over spørringene til applikasjoner som henter data fra dem.
-
-## Kvalitetskrav til system
- - Tilgjengelighet: Det skal være mulig å forespørre data fra databasen mens datamigrasjon er iverksatt. Dette kravet evalueres ikke på kvantitativt, men på kvalitativt grunnlag, det vil si ved å kjøre DBUpgradinator i et simulert produksjonsmiljø, det vil si en applikasjon som ikke mottar forespørsler fra klienter som kommuniserer med HTTP.
- - Ytelse: Ved rullerende eller lat datamigrasjon utsettes databasen for en vesentlig degradering i gjennomstrømskapasitet, målt i spørringer per sekund. Denne hemmelsen må være minimal i den implementerte migrasjonsløsningen. **Hvordan tester man dette?**
- - Modularitet: Løsningen som programmeres bør interferere minst mulig med eksisterende kildekode i Project Voldemort, primært gjennom å utvikle det som et separat prosjekt.
-
 
 ## TODO: Serverside
  - ObjectInputStream must be constructed on another stream
@@ -110,7 +97,7 @@ Diskutere krav-/måloppnåelse beskrevet i dette kapittel, forårsaker oppdateri
 ```latex
 \subsection{Om adminprogrammet dba.jar}
 
-For å sende 
+For å sende en transformasjonsklasse til hver av applikasjonstjenerne i produksjonsklyngen brukes et enkelt hjelpeprogram kalt dba.jar.
 
 Programmet dba.jar kjøres i Java 8 - kjøretidsmiljøet fra kommandolinjen og tar inn følgende seks argumenter:
 \begin{enumerate}
@@ -123,9 +110,3 @@ Programmet dba.jar kjøres i Java 8 - kjøretidsmiljøet fra kommandolinjen og t
   \item Absolutt sti til XML-konfigurasjonsfilen som deklarerer IP-adresse og TCP-port
 \end{enumerate}
 ```
-    // 0: 
-    // 1: 
-    // 2: Second argument til constructor, currentVersion
-    // 3: Third argument til constructor, nextVersion
-    // 4: Full name for the AggregateTransformerClass extending AbstractAggregateTransformer, used in loadClass
-    // 5: Absolute path to conf.xml, 

@@ -26,25 +26,74 @@ Disse fire separate perspektivene kan også kombineres sammen i et femte perspek
 
 \subsection{Det logiske perspektiv}
 
+Klassene som refereres til i diagrammene:
+\begin{itemize}
+  \item \textbf{AbstractAggregateTransformer} - en abstrakt klasse med en tilstandsvariabel som indikerer applikasjonsversjonen oppgraderingsklassen opererer på og en som indikerer nøkkelverdien til den neste applikasjonen som den transformerte verdien gjelder for; klassen har én abstrakt metoder, som implementeres i subklassen programmert og kompilert til \texttt{.class}-fil av den individuelle applikasjonsprogrammerer. Metodens navn er \texttt{TransformAggregate}, som påkalles når en forespørsel fra webapplikasjonens gamle versjon (som er under rullerende oppgradering) tilsendes databaseklienten, den påkalles både når klienten mottar data fra datalageret, etter at en \texttt{InconsistencyResolver} har flettet divergerende elementer; argumenter: key (fra DB), value (deserialisert), så vel som når klienten mottar data fra applikasjonen, altså fra forespørselen direkte.
+  \item \textbf{AppVersionResolver} - hjelperklasse som kopler dataobjektets nøkkel i en innkommende HTTP-spørring (k) med applikasjonsversjonens nøkkel (x) på formen \texttt{k + ":" + x}
+  \item \textbf{AggregateTransformerReceiver} - frittstående prosess som ikke er del av en spørrings livsløp, men som både mottar AggregateTransformer-objekter og holder rede på dem i versjonsrekkefølge i en privat liste. Har også ansvar for å påkalle transformasjonsmetoden til hvert objekt.
+  \item \textbf{Migrator} - \texttt{public} hovedklasse som eksponerer DBUpgradinator sin funksjonalitet til programvareutvikleren. Dens tilstand inkorpurerer aggregatets objekttype - det vil si domeneklassen til aggregatet, som sendes inn i transformasjonsfunksjonen til AbstractAggregateTransformer-klassen som verdi-argument. Transformasjonsfunksjonen blir overridet av den implementerte klassen.
+\end{itemize}
+
+\newpage
+
 % Figur 5
-\begin{figure}[ht!]
+\begin{figure}[!ht]
     \centering
-    \includegraphics[scale=0.9]{fig/dbupgradinator-logisk-1.png}
+    \includegraphics[scale=0.5]{fig/dbupgradinator-logisk-1.png}
     \caption{Logisk oversikt over moduler i det typiske produksjonsmiljøet DBUpgradinator opererer i. Klassene som DBUpgradinator består av nevnes med navn.}
     \label{fig5}
 \end{figure}
 
+\newpage
+
 % Figur 6
-\begin{figure}[ht!]
+\begin{figure}[!ht]
     \centering
-    \includegraphics[scale=0.9]{fig/dbupgradinator-logisk-2.png}
+    \includegraphics[scale=0.5]{fig/dbupgradinator-logisk-2.png}
     \caption{Logisk oversikt over moduler i det typiske produksjonsmiljøet DBUpgradinator opererer i. Klassene som DBUpgradinator består av nevnes med navn.}
     \label{fig6}
 \end{figure}
 
-
+\newpage
 
 \subsection{Det prosessmessige perspektiv}
 
+% Figur 7
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[scale=0.6]{fig/dbupgradinator-prosess-1.png}
+    \caption{Prosess.}
+    \label{fig7}
+\end{figure}
+
+\newpage
+
+% Figur 8
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[scale=0.6]{fig/dbupgradinator-prosess-2.png}
+    \caption{Prosess.}
+    \label{fig8}
+\end{figure}
+
+\newpage
+
+% Figur 9
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[scale=0.6]{fig/dbupgradinator-prosess-3.png}
+    \caption{Prosess.}
+    \label{fig9}
+\end{figure}
+
+\newpage
+
 \subsection{Det fysiske perspektiv}
 
+% Figur 10
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[scale=0.6]{fig/dbupgradinator-physical.png}
+    \caption{Deployment-diagram.}
+    \label{fig10}
+\end{figure}

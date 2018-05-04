@@ -14,7 +14,7 @@ Her listes øvrige antakelser for prototypeimplementasjonen av DBUpgradinator, d
 
 \begin{itemize}
   \item Dataobjekter serialiseres 'client' side, altså er lagringsnodene 'dumme' og backend-tjenerne 'smarte'
-  \item Serialisering (Voldemort): \underline{String}, altså ser den enkelte databasetjener kun strenger og kan ikke lese av skjemaet
+  \item Serialisering (Voldemort): \underline{String}, altså ser den enkelte databasetjener kun strenger og kan ikke lese av skjemaet; videre antas det at databasen bruker LWW - strategien for å løse flettetvister automatisk
   \item Applikasjonsstakken til Voldemort-instansen denne oppgaven tester har en fast konfigurasjon
   \item Nøkler i skjemaet endrer ikke type eller form
   \item Dataobjekter har en skjema-versjonstag brukt til å sjekke om tuppelen må oppgraderes
@@ -29,10 +29,20 @@ Her listes øvrige antakelser for prototypeimplementasjonen av DBUpgradinator, d
   \item Webapplikasjonen som modulen testes i har en RESTful - arkitektur
 \end{itemize}
 
-\textbf{Funksjonelle krav}. DBUpgradinator er en modul som skal kjøre i produksjonsmiljøet til en webapplikasjon skrevet i Java.
+\subsection{Funksjonelle krav}
 
-\begin{itemize}
-  \item DBUpgradinator skal lage én ekstra databasespørring for hvert nye sett med transformasjoner som påføres et aggregat - et aggregat skal kunne gjennomgå flere transformasjonssteg i ett
-  \item 
-  \item 
-\end{itemize}
+\begin{enumerate}
+  \item DBUpgradinator er en modul som skal kjøre i produksjonsmiljøet til en webapplikasjon skrevet i Java
+  \item DBUpgradinator skal lage én ekstra databasespørring for hver nye transformasjon som påføres et aggregat
+  \item Ved en GET-forespørsel til aggregatet med nøkkel \emph{x} fra en applikasjonsinstans som bruker en ny skjemaversjon \emph{k} skal DBUpgradinator også opprette en GET-forespørsel etter det samme aggregatet men med prefikset til den foregående skjemaversjonen i nøkkelen, \emph{j}
+  \item Hver enkelt applikasjonsinstans har kontroll over versjonen av dataskjemaet sitt, som identifiseres ved en hæsjstreng som konkatineres med IDen til hver enkelt dataelement før PUT sendes til databasen
+  \item Oppgraderingsverktøyet vil opprette en ny tuppel i lageret hvis skjema-versjon-suffiks er annerledes og dataobjekt-ID-prefiks er likens prefikset til tuppelen som oppgraderes; således kan det distribuerte systemet kjøre en mikset tilstand mens datamigrasjonen foregår
+\end{enumerate}
+
+\subsection{Kvalitetskrav}
+
+\begin{enumerate}
+  \item Tilgjengelighet: Det skal være mulig å forespørre data fra databasen mens datamigrasjon er iverksatt. Dette kravet evalueres ikke på kvantitativt, men på kvalitativt grunnlag, det vil si ved å kjøre DBUpgradinator i et simulert produksjonsmiljø, det vil si en applikasjon som ikke mottar forespørsler fra klienter som kommuniserer med HTTP.
+  \item Ytelse: Ved rullerende eller lat datamigrasjon utsettes databasen for en vesentlig degradering i gjennomstrømskapasitet, målt i spørringer per sekund. Denne hemmelsen må være minimal i den implementerte migrasjonsløsningen.
+  \item Modularitet: Løsningen som programmeres bør interferere minst mulig med eksisterende kildekode i Project Voldemort, primært gjennom å utvikle det som et separat prosjekt.
+\end{enumerate}
