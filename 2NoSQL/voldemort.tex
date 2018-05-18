@@ -47,11 +47,11 @@ Når en node svikter permanent, vil dets datalast bli omdistribuert til de gjenv
 \begin{figure}[!ht]
     \centering
     \includegraphics{fig/hashring.png}
-    \caption{Eksempel på konsistent hashring i Project Voldemort. Node A lagrer nøkler med hashverdi 0--15, B lagrer nøkler hvis hashverdi er mellom 16 og 31, C lagrer nøkler hvis hashverdi er mellom 32 og 47, og D lagrer nøkler hvis hashverdi er mellom 48 og 63.}
+    \caption{Eksempel på konsistent hashring i Project Voldemort.}
     \label{fig4}
 \end{figure}
 
 Den logiske strukturen til likemannsnettverket av databasenoder i Voldemort har formen til en ring. Denne ringen består av en stor mengde diskrete posisjoner, verdiområdet til en hashfunksjon \emph{h}. Hver node som deltar i databaseklyngen tildeles en gruppe av disse punktene i ringen. \emph{h} brukes til å finne ringposisjonen til en nøkkel \emph{k}. Den noden hvis tilordnede mengde av hashverdier inneholder \emph{h(k)} blir den som lagrer det assosierte dataobjektet til \emph{k}.
 
-Den konsistente hashalgoritmen og ringstrukturen til likemannsnettverket realiserer datareplikering ved å legge antallet påkrevde replikaer, per quorumkonfigurasjonen, på \underline{etterfølgende} noder i ringen, med sola \citep{elmasri2014}. Per \ref{fig4} og konfigurasjonen N=3 vil eksempelvis alle dataobjekter som hashes til node A også kopieres til node B og C.
+Den konsistente hashalgoritmen og ringstrukturen til likemannsnettverket realiserer datareplikering ved å legge antallet påkrevde replikaer, per quorumkonfigurasjonen, på etter-følgende noder i ringen, med sola \citep{elmasri2014}. Per figur \ref{fig4} og replikakonfigurasjonen \(N=3\) vil eksempelvis alle dataobjekter som hashes til node A også kopieres til node B og C. Av denne figuren kan man lese at node A lagrer nøkler med hashverdi 0-15, B lagrer nøkler hvis hashverdi er mellom 16 og 31, C lagrer nøkler hvis hashverdi er mellom 32 og 47, og D lagrer nøkler hvis hashverdi er mellom 48 og 63.
 
