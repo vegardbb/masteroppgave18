@@ -1,6 +1,4 @@
 \clearpage
-\pagenumbering{roman} 				
-\setcounter{page}{1}
 
 \pagestyle{fancy}
 \fancyhf{}
@@ -15,6 +13,13 @@
 \addcontentsline{toc}{chapter}{Abstract}	
 $\\[0.5cm]$
 
-\noindent TODO: Engelsk abstract
+Modern, commercial software systems often cater to hundreds of thousands unique users over the Internet, typically by use of HTTP - the Hypertext Transfer Protocol. It is on such large-scale systems NoSQL databases are practical to use to persist application data, as they are more capable than conventional relational databases at storing large volumes of data that are persisted rapidly and frequently on the system. NoSQL databases scale horizontally, which means that instead of upgrading a database server by replacing it with newer, more powerful hardware, a cheap server with poor hardware specifications is added to an existing cluster of similar cheap servers. Data items called ‘’aggregates’’ are partitioned and replicated across the members of this cluster.
+
+One of the biggest challenges presented by the large-scale production system is updating its source code with improvements and fault repairs. For the commercial firm which owns and administrates this system, completely decommissioning it for maintenance is out of the question, as the potential income lost the service shutdown entails would be intolerable. Thus, many such systems are upgraded in a rolling fashion, which means that at most one server is turned off during upgrade at the time. Instead, individual program processes are replaced one by one for each application server that services requests.
+
+As such the servicing of user request can be done continuously despite of ongoing maintenance operations. Installing patches this way is not without downsides. The rolling update opens for one strange anomaly: Mixed versions. In this system state, a new, upgraded instance of the server may look up a persisted data objected that was either updated or created on the old data model. The query will execute and finish, but the behaviour in the frontend following the delivery of the result will likely cause unintended consequences because of the schema mismatch between that of the tuple and the application instance submitting the query.
+
+This thesis presents the module DBUpgradinator, a continuous migration tool written primarily for aggregate - oriented data models such as Key-Value. It is a support tool for administering live migration of aggregates without allowing queries across different data models through identifying the schema versions explicitly. The tool migrates each aggregate when it is requested by an application client. This lazy migration strategy is compatible with high availability requirements, as it enables a lazy data migration service that is suited to a rolling upgrade of the web application.
 
 \clearpage
+
