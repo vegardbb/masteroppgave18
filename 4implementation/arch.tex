@@ -62,7 +62,7 @@ Klassene som refereres til i diagrammene:
 \begin{figure}[!ht]
     \centering
     \includegraphics[scale=0.6]{fig/dbupgradinator-prosess-1.png}
-    \caption{Prosess.}
+    \caption{Aktivitetsdiagram som illustrerer hvordan DBUpgradinator interfererer i applikasjonslogikken ved en \texttt{GET} - forespørsel før databaseklienten mottar spørringen.}
     \label{fig7}
 \end{figure}
 
@@ -72,7 +72,7 @@ Klassene som refereres til i diagrammene:
 \begin{figure}[!ht]
     \centering
     \includegraphics[scale=0.6]{fig/dbupgradinator-prosess-2.png}
-    \caption{Prosess.}
+    \caption{Aktivitetsdiagram som illustrerer hvordan DBUpgradinator interfererer i applikasjonslogikken ved en \texttt{GET} - forespørsel etter at spørringen er ferdig.}
     \label{fig8}
 \end{figure}
 
@@ -82,7 +82,7 @@ Klassene som refereres til i diagrammene:
 \begin{figure}[!ht]
     \centering
     \includegraphics[scale=0.6]{fig/dbupgradinator-prosess-3.png}
-    \caption{Prosess.}
+    \caption{Aktivitetsdiagram som illustrerer hvordan DBUpgradinator interfererer i applikasjonslogikken ved en \texttt{PUT} - forespørsel.}
     \label{fig9}
 \end{figure}
 
@@ -97,3 +97,5 @@ Klassene som refereres til i diagrammene:
     \caption{Deployment-diagram.}
     \label{fig10}
 \end{figure}
+
+De fire boksene i figur \ref{fig10} refererer til fire forskjellige datasentre. Hver enkelt av de fire applikasjonsnodene gjestes av skyinfrastrukturleverandøren DigitalOcean, og alle er spredd utover fire forskjellige datasentre i London, Amsterdam (to separate datasentre), og Frankfurt am Main.

@@ -28,9 +28,9 @@ Alternativt kan man benytte RMI - Remote Method Invocation, det vil si at hver e
    * FRA1 -> FRA1; AMS1; AMS2
 
 ## Testprossess
- * Total størrelse på testdata: 100 GB
- * Partisjon på hver instans: 25 GB; Replikert datavolum på hver instans: 50 GB; Volum per maskin: *75 GB*
- * Gjenværende volum reservert OS og hurtigminne: 80 GB (SSD-plass per droplet) - 75 GB = 5 GB
+ * Total størrelse på testdata: 24 . 100 GB
+ * Partisjon på hver instans: 4 . 25 GB; Replikert datavolum på hver instans: 8 . 50 GB; Volum per maskin: 12 *75 GB*
+ * Gjenværende volum reservert OS og hurtigminne: 80 GB (SSD-plass per droplet) - 75 GB = 5 GB / 20 G - 12 = 8
  * 1000 KB = 1 GB
  * Antakelse: Hvert aggregat i datamodell opptar i snitt 1 KB lagringsplass
 
