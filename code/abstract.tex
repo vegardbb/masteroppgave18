@@ -1,0 +1,11 @@
+\begin{lstlisting}[language=Java, caption=Demonstrasjon av casting til abstrak klasse.]
+    // From the class DynamicTimeoutStoreClient<K, V> found in package voldemort.rest.coordinator;
+
+    // Bootstrap using the given cluster xml and stores xml
+    // The super class bootStrap() method is used to handle the
+    // InvalidMetadataException
+    public void bootStrap(String customClusterXml, String customStoresXml) {
+        AbstractStoreClientFactory factory = (AbstractStoreClientFactory) this.storeFactory;
+        this.store = factory.getRawStore(storeName, null, customStoresXml, customClusterXml, null);
+    } 
+\end{lstlisting}
