@@ -1,0 +1,34 @@
+% aggregatetransformerreceiver
+\begin{lstlisting}[language=Java, caption={Funksjon i Migrator som kjøres i separat tråd.}]
+// Separate process that actively listens for new classes that extend AAT
+private void aggregateTransformerReceiver() {
+    // Define ClassLoader instance
+    AggregateTransformerLoader loader = new AggregateTransformerLoader();
+    // This try block will run forever!
+    try {
+        // Define ServerSocket instance
+        boolean looper = true;
+        ServerSocket server = new ServerSocket(this.port);
+        while ( looper ) {
+            Socket s = server.accept();
+            // Once a connection lands, we move on to the next line in this program
+            ObjectInputStream in = new ObjectInputStream(s.getInputStream());
+            // Read objects
+            byte[] classData = (byte[]) in.readObject();
+            String[] consArgs = (String[]) in.readObject();
+            String className = (String) in.readObject();
+            looper = (boolean) in.readObject();
+            in.close();
+            Class c = loader.createClass(className, classData);
+            Constructor cons = c.getConstructor(String.class, String.class);
+            AbstractAggregateTransformer tran =
+                (AbstractAggregateTransformer) cons.newInstance( consArgs[0], consArgs[1] );
+            // Add transformer class to the AAT dictionary
+            this.addTransformer(tran);
+        }
+    } catch (Exception e) {
+        logger.error("This is error", e);
+        Thread.currentThread().interrupt();
+    }
+}
+\end{lstlisting}
