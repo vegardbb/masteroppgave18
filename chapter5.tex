@@ -2,15 +2,17 @@
 
 \chapter{Evaluering av datamodellevolusjonsløsning}
 
-Dette kapitlet presenterer og diskuterer resultatene av testingen av datamodellevolusjonsløsningen DBUpgradinator, og sammenlikner datamodellevolusjonsløsningens kvaliteter med øvrige systemer presentert i kapittel 3. I delkapittel \ref{prog} vil testprosessen beskrives, herunder inkludert konfigurasjon av Voldemort-klyngeinstansen; hvordan testprogrammet WebshopSimulator er bygd opp; innsamling av testdata ved hjelp av Log4j 2 og diverse tellere innebygd i simulasjonsprogrammet.
+Dette kapitlet presenterer og diskuterer resultatene av testingen av datamodellevolusjonsløsningen DBUpgradinator, og sammenlikner datamodellevolusjonsløsningens kvaliteter med øvrige systemer presentert i kapittel 3. I delkapittel \ref{prog} vil testprosessen beskrives, herunder inkludert konfigurasjon av Voldemort-klyngeinstansen; hvordan testprogrammet WebshopSimulator er bygd opp; innsamling av testdata ved hjelp av loggeprogrammet Log4j og diverse tellere innebygd i simulasjonsprogrammet.
 
-\section{WebShopSimulator} \label{prog}
+\section{WebshopSimulator} \label{prog}
 
-Et separat Java-program simulerer en kontinuerlig serie med forespørsler som jevnfordeles blant applikasjonsinstansene. Programmets oppførsel kan i korte trekk inndeles i tre satser:
+Webapplikasjonen som DBUpgradinator testes på, heter \emph{WebshopSimulator}.
+
+Frontend-delen av webapplikasjonen er skrevet i Javascript, og kjøres som et separat klientprogram. Dette skriptet kjøres i kjøretidsmiljøet NodeJS, slik at  , kalt \emph{WebAppSimulator}, simulerer en kontinuerlig serie med forespørsler som jevnfordeles blant applikasjonsinstansene. Programmets funksjonalitet kan i korte trekk inndeles i tre satser:
 
 \begin{enumerate}
-  \item Programmet sender klyngen av tjenere en serie av POST-forespørsler, slik at nye aggregater lagres i databasen. Totalt 6 GB i serialiserte JSON-objekter sendes Applikasjonensinstansene og VOldemort-klientene. Samtidig holder en egen loggerprosess styr på ID-verdiene som genereres av tjenerne som tilsendes denne simulerte klienten
-  \item 
+  \item Programmet sender klyngen av tjenere en serie av POST-forespørsler, slik at nye aggregater lagres på hver av de fire tomme nodene i databasen. Totalt 8 GB i serialiserte JSON-objekter sendes applikasjonsinstansene og Voldemort-klientene. Samtidig holder en egen loggeprosess styr på ID-verdiene som genereres av tjenerne som tilsendes denne simulerte klienten
+  \item Etter at den første satsen er ferdig, terminerer programmet. Da må applikasjonsloggen, generert av frontendsimulatoren, transformeres til en liste av unike IDer. Til å oppnå dette formålet brukes tekstverktøyet Vim.
 \end{enumerate}
 
 \cleardoublepage
