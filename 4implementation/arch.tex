@@ -16,7 +16,7 @@ Disse fire perspektivene kaller \cite{kruchten1995} for:
 
 Den primære oppgaven til det logiske perspektivet av arkitekturdokumentasjonen er å representere effektene de funksjonelle krav som stilles til datasystemet har på det. De funksjonelle krav har opprinnelse i domenet til problemet datasystemet angriper. Systemets viktigste abstrakte konstruksjoner, kalt objekter i programmets og klasser i kildekoden, kan knyttes til separate begreper inneholdt i domenet til problemet interessentene (de som leser arkitekturdokumentet) vil løse \citep{kruchten1995}. Objekter utnytter egenskaper som arv/spesialisering, innkapsling og funksjonsmaskering gjennom grensesnitt for å realisere påkrevd funksjonalitet. Logiske perspektiver inneholder gjerne klassediagrammer og sekvensdiagrammer skrevet med UML - syntaksen. Et klassediagram viser en oversikt over klassene og relasjoner mellom dem i et objekt-orientert program. Hvis applikasjonen er sterkt datadrevet, slik tilfelle gjerne er i kommersielle webapplikasjoner som netthandel-informasjonssystemer, er det hensiktsmessig å presentere et ER -  eller et EER - diagram i det logiske perspektivet også.
 
-Prosessperspektivet beskriver hvordan oppfører seg når det kjører og hvordan det kjører. Prosessperspektivet reflekterer de ikke-funksjonelle krav, herunder kvalitetskrav, oppførselskrav og begrensende krav, som stilles til datasystemet. Sentrale problemer som tas stilling til inkluderer samtidighet, feiltoleranse, distribusjon av arbeidslast, integritet, parallelt kjørende tråder og hvordan entiteter, klasser eller objekter fra det logiske perspektivet gjenspeiles i prosessperspektivet \citep{kruchten1995}. Her svarer et objekt fra det logiske perspektivet til en tråd underordnet en kjørende prosess i et operativsystem. Et høytilgjengelig system vil typisk modelleres slik at enhver slik prosess i systemet har en identisk tvilling som kan steppe inn og ta over sin partners arbeidslast skulle den svikte, også kjent som en reserveprosess, på engelsk kalt for ‘’spare’’.
+Prosessperspektivet beskriver hvordan oppfører seg når det kjører og hvordan det kjører. Prosessperspektivet reflekterer de ikke-funksjonelle krav, herunder kvalitetskrav, krav til systemoppførsel og begrensende krav, som stilles til datasystemet. Sentrale problemer som tas stilling til inkluderer samtidighet, feiltoleranse, distribusjon av arbeidslast, integritet, parallelt kjørende tråder og hvordan entiteter, klasser eller objekter fra det logiske perspektivet gjenspeiles i prosessperspektivet \citep{kruchten1995}. Her svarer et objekt fra det logiske perspektivet til en tråd underordnet en kjørende prosess i et operativsystem. Et høytilgjengelig system vil typisk modelleres slik at enhver slik prosess i systemet har en identisk tvilling som kan steppe inn og ta over sin partners arbeidslast skulle den svikte, også kjent som en reserveprosess, på engelsk kalt for ‘’spare’’.
 
 Oppgaven til programvarearkitekturdokumentasjonens fysiske perspektiv er å definere sammenhengen mellom kildekode og maskinvaren (m.a.o. datamaskiner) som koden kjører på. Perspektivet er særskilt relevant for systemer der strenge, spesifikke krav stilles dets ytelse (gjennomstrømming i fore eksempel antall transaksjoner per sekund), tilgjengelighet (evnen til å handtere delvis eller fullstendig svikt) og pålitelighet (feiltoleranse). Arkitekturen til et distribuert system består av et nettverk av uavhengige datamaskiner som prosesserer data, kalt \emph{noder}. Derfor er det vesentlig å dokumentere hvilken rolle de abstrakte programvareelementer fra prosessperspektivet og utviklingsperspektivet spiller i forhold til de forskjellige fysiske noder \citep{kruchten1995}. Systemet har vanligvis forskjellige konfigurasjoner, en mengde parametere som bestemmer programvarens oppførsel under kjøretid. Én konfigurasjon kan gjelde for systemets testfase, en annen for når dets produksjonsmiljø, og et atter annet for vedlikeholds- eller utviklingsmiljø \citep{kruchten1995}. De forskjellige konfigurasjoner illustreres ofte i hvert sitt distribusjonsdiagram, som også kan skisseres med UML-syntaks.
 
@@ -24,35 +24,40 @@ Utviklingsperspektivet tiltaler primært applikasjonens utviklere og vedlikehold
 
 Disse fire separate perspektivene kan også kombineres sammen i et femte perspektiv, kalt bruksscenarier, som oppsummerer systemets mengde av funksjonelle krav \citep{kruchten1995}. Meningen bak dekomponeringen av programvarearkitekturdokumentasjonen er å belyse vesentlige interesseområder av systemet. Det er vesentlig å notere at perspektivmodellen i all hovedsak er en metamodell - en beskrivelse av sammenhengen mellom konkrete modeller for programmet brukt i arkitekturens dokumentasjon. Videre må det nevnes at samtlige perspektiver i metamodellen er valgfrie, enhver arkitekt står fri til å gjøre justeringer på sitt dokument i henhold til de krav som stilles systemarkitekturen som modelleres. DBUpgradinator modelleres med de tre første perspektivene i 4+1-metamodellen. Ettersom prosjekter er et enmannsarbeid er et sett av diagrammer som utgjør et eget utviklingsperspektiv ikke strengt nødvendig. Ett perspektiv som i kontekst av distribuerte applikasjoner er uunnværlig er det fysiske perspektivet.
 
-\subsection{Det logiske perspektiv}
-
-Klassene som refereres til i diagrammene:
-\begin{itemize}
-  \item \textbf{AbstractAggregateTransformer} - en abstrakt klasse med en tilstandsvariabel som indikerer applikasjonsversjonen oppgraderingsklassen opererer på og en som indikerer nøkkelverdien til den neste applikasjonen som den transformerte verdien gjelder for; klassen har én abstrakt metoder, som implementeres i subklassen programmert og kompilert til \texttt{.class}-fil av den individuelle applikasjonsprogrammerer. Metodens navn er \texttt{TransformAggregate}, som påkalles når en forespørsel fra webapplikasjonens gamle versjon (som er under rullerende oppgradering) tilsendes databaseklienten, den påkalles både når klienten mottar data fra datalageret, etter at en \texttt{InconsistencyResolver} har flettet divergerende elementer; argumenter: key (fra DB), value (deserialisert), så vel som når klienten mottar data fra applikasjonen, altså fra forespørselen direkte.
-  \item \textbf{AppVersionResolver} - hjelperklasse som kopler dataobjektets nøkkel i en innkommende HTTP-spørring (k) med applikasjonsversjonens nøkkel (x) på formen \texttt{k + ":" + x}
-  \item \textbf{AggregateTransformerReceiver} - frittstående prosess som ikke er del av en spørrings livsløp, men som både mottar AggregateTransformer-objekter og holder rede på dem i versjonsrekkefølge i en privat liste. Har også ansvar for å påkalle transformasjonsmetoden til hvert objekt.
-  \item \textbf{Migrator} - \texttt{public} hovedklasse som eksponerer DBUpgradinator sin funksjonalitet til programvareutvikleren. Dens tilstand inkorpurerer aggregatets objekttype - det vil si domeneklassen til aggregatet, som sendes inn i transformasjonsfunksjonen til AbstractAggregateTransformer-klassen som verdi-argument. Transformasjonsfunksjonen blir overridet av den implementerte klassen.
-\end{itemize}
-
 \newpage
 
+\subsection{Det logiske perspektiv}
 % Figur 5
 \begin{figure}[!ht]
     \centering
-    \includegraphics[scale=0.5]{fig/dbupgradinator-logisk-1.png}
+    \includegraphics[scale=0.6]{fig/dbupgradinator-logisk-1.png}
     \caption{Logisk oversikt over moduler i det typiske produksjonsmiljøet DBUpgradinator opererer i. Klassene som DBUpgradinator består av nevnes med navn.}
     \label{fig5}
 \end{figure}
 
 \newpage
 
+Figur \ref{fig5} viser en oversikt over de ulike bestanddelene i DBUpgradinator. Figuren viser også DBUpgradinator sin logiske relasjon til REST-webapplikasjonen brukt til å teste dette migrasjonsverktøyet i. Det logiske perspektivet (eng. ''view'') beskriver også de ulike atomiske moduler applikasjonen består av.
+
+Som vist i figur \ref{fig5}, består DBupgradinator av følgende klasser (firkant) og funksjoner (avrundet firkant):
+\begin{itemize}
+  \item \textbf{AbstractAggregateTransformer} - en abstrakt klasse med én tilstandsvariabel som indikerer skjemaversjonen transformasjonsklassen mottar aggregater fra og én som indikerer versjonen til det skjemaet som den transformerte verdien gjelder for. Klassen har én abstrakt metode, som implementeres i en subklasse.  programmert og kompilert til \texttt{.class}-fil av den individuelle applikasjonsprogrammerer. Metodens navn er \texttt{TransformAggregate}, som påkalles når en forespørsel fra webapplikasjonens gamle versjon (som er under rullerende oppgradering) tilsendes databaseklienten, den påkalles både når klienten mottar data fra datalageret, etter at en \texttt{InconsistencyResolver} har flettet divergerende elementer; argumenter: key (fra DB), value (deserialisert), så vel som når klienten mottar data fra applikasjonen, altså fra forespørselen direkte.
+  \item \textbf{AppVersionResolver} - en funksjon som kopler dataobjektets nøkkel i en innkommende HTTP-spørring (k) med applikasjonsversjonens nøkkel (x) på formen \texttt{k + ":" + x}
+  \item \textbf{AggregateTransformerReceiver} - frittstående prosess som ikke er del av en spørrings livsløp. Kodeobjektet er en funksjon som mottar AggregateTransformer-objekter og instansierer dem som instanser av den abstrakte superklassen \textbf{AbstractAggregateTransformer}. og holder rede på dem i versjonsrekkefølge i en privat liste. Funksjonen har også ansvaret for å påkalle transformasjonsmetoden til hvert objekt.
+  \item \textbf{Migrator} - \texttt{public} hovedklasse som eksponerer DBUpgradinator sin funksjonalitet til programvareutvikleren. Dens tilstand inkorpurerer aggregatets objekttype - det vil si domeneklassen til aggregatet, som sendes inn i transformasjonsfunksjonen til AbstractAggregateTransformer-klassen som verdi-argument. Transformasjonsfunksjonen blir overskrevet av den implementerte klassen. I en instans av Migrator
+\end{itemize}
+
+\newpage
+
 % Figur 6
 \begin{figure}[!ht]
-    \centering
-    \includegraphics[scale=0.5]{fig/dbupgradinator-logisk-2.png}
-    \caption{Logisk oversikt over moduler i det typiske produksjonsmiljøet DBUpgradinator opererer i. Klassene som DBUpgradinator består av nevnes med navn.}
-    \label{fig6}
+  \centering
+  \includegraphics[scale=0.67]{fig/dbupgradinator-logisk-2.png}
+  \caption{Logisk oversikt over moduler i det typiske produksjonsmiljøet DBUpgradinator opererer i. Klassene som DBUpgradinator består av nevnes med navn.}
+  \label{fig6}
 \end{figure}
+
+Migrator - klassen har en lenket liste av instanser av AbstractAggregateTransformer, som utviklerens egenskrevne klasse AggregateTransformer (markert med rosa omriss i figur \ref{fig6}) arver fra. Det er Migrator-klassen som har ansvar for å utlede skjemaversjonskausalitet med denne lenkede listen og transformere innkommende aggregater, fra databasen så vel som applikasjonen, ved behov.
 
 \newpage
 
@@ -66,6 +71,8 @@ Klassene som refereres til i diagrammene:
     \label{fig7}
 \end{figure}
 
+Dette aktivitetsdiagrammet beskriver systemets .oppførsel når en GET-forespørsel fra en applikasjonstjener hvis skjemaversjon er j, men produksjonsmiljøet kan være under oppgradering av dataskjemaet fra versjon j til k, der k etterfølger j.
+
 \newpage
 
 % Figur 8
@@ -76,15 +83,19 @@ Klassene som refereres til i diagrammene:
     \label{fig8}
 \end{figure}
 
+Dette aktivitetsdiagrammet beskriver systemets .oppførsel når en applikasjonstjener mottar et spørringsresultat fra GET-forespørselen beskrevet i figur \ref{fig7}. DBUpgradinator migrerer aggregatet returnert fra GET-spørringen hvis det er behov for det.
+
 \newpage
 
 % Figur 9
 \begin{figure}[!ht]
     \centering
     \includegraphics[scale=0.6]{fig/dbupgradinator-prosess-3.png}
-    \caption{Aktivitetsdiagram som illustrerer hvordan DBUpgradinator interfererer i applikasjonslogikken ved en \texttt{PUT} - forespørsel.}
+    \caption{Aktivitetsdiagram som illustrerer hvordan DBUpgradinator påvirker applikasjonens oppførsel ved en innkommende \texttt{PUT} - forespørsel.}
     \label{fig9}
 \end{figure}
+
+Dette aktivitetsdiagrammet beskriver webapplikasjonens oppførsel når en PUT-forespørsel fra en applikasjonstjener hvis skjemaversjon er \emph{j} , men produksjonsmiljøet kan være under oppgradering av dataskjemaet fra versjon \emph{j} til \emph{k}, der \emph{k} etterfølger \emph{j}.
 
 \newpage
 
@@ -94,7 +105,7 @@ Klassene som refereres til i diagrammene:
 \begin{figure}[!ht]
     \centering
     \includegraphics[scale=0.6]{fig/dbupgradinator-physical.png}
-    \caption{Deployment-diagram.}
+    \caption{Deployment-diagram av webapplikasjonen DBUpgradinator testes i.}
     \label{fig10}
 \end{figure}
 
