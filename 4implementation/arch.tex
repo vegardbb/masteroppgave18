@@ -37,15 +37,21 @@ Disse fire separate perspektivene kan også kombineres sammen i et femte perspek
 
 \newpage
 
-Figur \ref{fig5} viser en oversikt over de ulike bestanddelene i DBUpgradinator. Figuren viser også DBUpgradinator sin logiske relasjon til REST-webapplikasjonen brukt til å teste dette migrasjonsverktøyet i. Det logiske perspektivet (eng. ''view'') beskriver også de ulike atomiske moduler applikasjonen består av.
+Figur \ref{fig5} viser en oversikt over de ulike bestanddelene i DBUpgradinator. Figuren viser også DBUpgradinator sin logiske relasjon til REST-webapplikasjonen brukt til å teste dette migrasjonsverktøyet i. Det logiske perspektivet (eng. ''view'') beskriver også de ulike atomiske moduler webapplikasjonen består av.
 
-Som vist i figur \ref{fig5}, består DBupgradinator av følgende klasser (firkant) og funksjoner (avrundet firkant):
-\begin{itemize}
-  \item \textbf{AbstractAggregateTransformer} - en abstrakt klasse med én tilstandsvariabel som indikerer skjemaversjonen til transformasjonsklassen mottar aggregater fra, og én som indikerer versjonen til det skjemaet som den transformerte verdien gjelder for. Klassen har én abstrakt metode, som implementeres i en subklasse.  programmert og kompilert til \texttt{.class}-fil av den individuelle applikasjonsprogrammerer. Den eneste abstrakte metoden i klassen er \texttt{TransformAggregate}, som påkalles når en forespørsel fra webapplikasjonens gamle versjon (som er under rullerende oppgradering) tilsendes databaseklienten, den påkalles både når klienten mottar data fra datalageret, etter at en \texttt{InconsistencyResolver} har flettet divergerende elementer; argumenter: key (fra DB), value (deserialisert), så vel som når klienten mottar data fra applikasjonen, altså fra forespørselen direkte.
-  \item \textbf{AppVersionResolver} - en funksjon inneholdt i Migrator. Dens designerte oppgave er å kople dataobjektets nøkkel i en innkommende HTTP-spørring (k) med applikasjonsversjonens nøkkel (x) på formen \texttt{k + ":" + x}
-  \item \textbf{AggregateTransformerReceiver} - frittstående prosess som ikke er del av en spørrings livsløp. Kodeobjektet er en funksjon som mottar AggregateTransformer-objekter og instansierer dem som instanser av den abstrakte superklassen \textbf{AbstractAggregateTransformer}. og holder rede på dem i versjonsrekkefølge i en privat liste. Funksjonen har også ansvaret for å påkalle transformasjonsmetoden til hvert objekt.
-  \item \textbf{Migrator} - \texttt{public} hovedklasse som eksponerer DBUpgradinator sin funksjonalitet til programvareutvikleren. Dens tilstand inkorpurerer aggregatets objekttype - det vil si domeneklassen til aggregatet, som sendes inn i transformasjonsfunksjonen til AbstractAggregateTransformer-klassen som verdi-argument. Transformasjonsfunksjonen blir overskrevet av den implementerte klassen. I en instans av Migrator
-\end{itemize}
+Webapplikasjonen er inndelt i to nivå: Ett nivå for visningslogikken (''Frontend'') og ett for tjenerlogikken (''Backend''). Visningslogikken kjøres i et nettlesermiljø, det vil si at visningslogikken er en nettside som åpnes av en nettleser, som Microsoft Edge eller Mozilla Firefox. Nettleseren viser elementer som dikteres av kildekoden til siden nettleseren åpnet. ''Frontend'' - miljøet i diagrammet markeres med en sirkel fordi det er et klientprogram, separat fra tjenerne, som kjører i en nettleser. Intensjonen med webapplikasjonen er at det er nettlesere som skal kjøre klientprogrammet. Frontendklienten oppretter og sender HTTP-forespørsler til det funksjonelle grensesnittet til applikasjonstjeneren.
+
+Tjenerlogikken instansieres og kjøres innenfor et kjøretidssystem (eng. ''run-time system''), en spesialisert programvare som implementerer deler av kjøringsmodellen til et språk. En kjøringsmodell skisserer hvordan kode kjøres i et operativsystemet, for eksempel kan den være event-basert og tillate asynkron kjøring av kode, slik tilfelle er med kjøretidssystemet NodeJS. Fra et operativsystem sitt perspektiv anskues kjøretidssystemet som en selvstendig prosess. Det kommuniserer med operativsystemets grensesnitt på vegne av programmet det instansierer og kjører som en tråd underordnet seg selv. Kjøretidsmiljøet til Java heter for Java Runtime Environment (JRE).
+
+Figur \ref{fig5} viser hvordan den logiske strukturen til webapplikasjoner, som DBUpgradinator er skrevet for, skal se ut. Applikasjonstjeneren består av følgende elementer:
+
+\begin{description}
+  \item [AbstractAggregateTransformer] er et objekt som transformer aggregater som enten er mottatt fra en HTTP-forespørsel (PUT eller POST) eller mottatt fra databasen som et resultat av en GET-forespørsel. Selve transformasjonsfunksjonen er implemtert av applikasjonens utviklere eller vedlikeholdere.
+  \item [Migrator] Dette er en \texttt{public} hovedklasse som eksponerer DBUpgradinator sin funksjonalitet til programvareutvikleren. Dens tilstand inkorpurerer aggregatets objekttype - det vil si domeneklassen til aggregatet, som sendes inn i transformasjonsfunksjonen til AbstractAggregateTransformer-klassen som verdi-argument. Transformasjonsfunksjonen blir overskrevet av den implementerte klassen. En instans av Migrator spør etter data på forespørsler tilsendt tjeneren med HTTP-protokollen, og persisterer samtidig migrerte aggregater returnert av transformasjonsfunksjonen til instansen av AbstractAggregateTransformer
+  \item [AggregateTransformerReceiver] er en frittstående prosess som ikke er del av en spørrings livsløp. Kodeobjektet er en funksjon som mottar AggregateTransformer-objekter og instansierer dem som instanser av den abstrakte superklassen \textbf{AbstractAggregateTransformer}. og holder rede på dem i versjonsrekkefølge i en privat liste. Funksjonen har også ansvaret for å påkalle transformasjonsmetoden til hvert objekt.
+  \item [AppVersionResolver] Oppgaven til denne modulen er å kople dataobjektets nøkkel i en innkommende HTTP-spørring (k) med applikasjonsversjonens nøkkel (x) på formen \texttt{k + ":" + x}
+  \item [StringQueryInterface] Modul som utfører GET og PUT - spørringer for Migrator-objektet.
+\end{description}
 
 \newpage
 
@@ -53,7 +59,7 @@ Som vist i figur \ref{fig5}, består DBupgradinator av følgende klasser (firkan
 \begin{figure}[!ht]
   \centering
   \includegraphics[scale=0.67]{fig/dbupgradinator-logisk-2.png}
-  \caption{Logisk oversikt over moduler i det typiske produksjonsmiljøet DBUpgradinator opererer i. Klassene som DBUpgradinator består av nevnes med navn.}
+  \caption{Kommunikasjonsdiagram som illustrerer forholdet mellom databaseadministratoren, som har ansvar for migrasjonen av data i en databaseinstans, og en applikasjonstjener der DBUpgradinator benyttes for å migrere data levende.}
   \label{fig6}
 \end{figure}
 
@@ -61,7 +67,7 @@ Migrator - klassen har en lenket liste av instanser av AbstractAggregateTransfor
 
 \newpage
 
-\subsection{Det prosessmessige perspektiv}
+\subsection{Prosessperspektivet}
 
 % Figur 7
 \begin{figure}[!ht]
