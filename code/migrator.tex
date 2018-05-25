@@ -1,0 +1,30 @@
+\begin{lstlisting}[language=Java, caption={Migrator-klassen i DBUpgradinator}]
+package vbb.dbupgradinator;
+
+import java.lang.reflect.Constructor;
+import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.concurrent.CompletableFuture;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+public class Migrator {
+    private static final Logger logger = LogManager.getLogger("DBUpgradinator");
+    private final String className;
+    private final HashMap<String, AbstractAggregateTransformer> transformers = new HashMap<>(4, (float) 0.95);
+
+    public Migrator() {
+        this.className = "UserAggregateTransformer";
+        // Sets up separate process which listens actively on the server socket
+        new Thread( this::aggregateTransformerReceiver ).start();
+    }
+
+// Se kodelisting 4.2 til og med 4.7 for resten av kildekoden til Migrator
+// ...
+
+}
+\end{lstlisting}

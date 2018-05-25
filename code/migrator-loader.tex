@@ -1,0 +1,8 @@
+\begin{lstlisting}[language=Java, caption={Indre klasse brukt til å definere en transformasjonsklasse som arver konstruktør fra \emph{AbstractAggregateTransformer}.}]
+private class AggregateTransformerLoader extends ClassLoader {
+    AggregateTransformerLoader() { super(); }
+    final Class<?> createClass(String name, byte[] b) throws ClassFormatError {
+        return super.defineClass(name, b, 0, b.length);
+    }
+}
+\end{lstlisting}

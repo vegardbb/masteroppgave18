@@ -1,0 +1,19 @@
+\begin{lstlisting}[language=Java, caption={Metode for håndtering av PUT-spørring i Migrator.}]
+public boolean migrateAndPutAggregate(StringQueryInterface db, String aggregateKey, String schema, String ag) {
+    String key = this.getPersistedKey(aggregateKey, schema);
+    AbstractAggregateTransformer spec = this.transformers.get(schema);
+    if (null != spec) {
+        String nextSchema = spec.getNextSchemaVersion();
+        String nextKey = this.getPersistedKey(aggregateKey, nextSchema);
+        CompletableFuture.supplyAsync(() -> db.persist(nextKey, spec.transformAggregate(ag))).thenAccept((fail) -> {
+            if (fail == null) {
+                logger.info("Migrated aggregate with key " + key + " to " + nextKey);
+            } else {
+                logger.error("Error during migration from " + key + " to " + nextKey + ":\n"+ fail.toString());
+            }
+        });
+    }
+    Exception ex = db.persist(key, ag);
+    return logUpdateResult(key, ex);
+}
+\end{lstlisting}

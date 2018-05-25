@@ -1,0 +1,30 @@
+\begin{lstlisting}[language=Java, caption={Metode for håndtering av POST-spørring i Migrator.}]
+private static boolean logUpdateResult(String key, Exception ex) {
+    if (ex == null) {
+        logger.info("Persisted key " + key);
+        return true;
+    } else {
+        logger.error("Error during persisting" + key + ": "+ ex.toString());
+        return false;
+    }
+}
+
+public boolean migrateAndPostAggregate(StringQueryInterface db, String aggregateKey, String schema, String ag) {
+    AbstractAggregateTransformer spec = this.transformers.get(schema);
+    String key = this.getPersistedKey(aggregateKey, schema); // This is the key used by the application
+    if (null != spec) {
+        String nextSchema = spec.getNextSchemaVersion();
+        String nextKey = this.getPersistedKey(aggregateKey, nextSchema);
+        String migratedAggregate = spec.transformAggregate(ag);
+        CompletableFuture.supplyAsync(() -> db.persist(nextKey, migratedAggregate)).thenAcceptAsync((fail) -> {
+            if (fail == null) {
+                logger.info("Migrated aggregate with key " + key + " to " + nextKey);
+            } else {
+                logger.error("Error during migration from " + key + " to " + nextKey + ":\n"+ fail.toString());
+            }
+        });
+    }
+    Exception ex = db.persist(key, ag);
+    return logUpdateResult(key, ex);
+}
+\end{lstlisting}

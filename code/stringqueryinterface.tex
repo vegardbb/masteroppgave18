@@ -1,0 +1,8 @@
+\begin{lstlisting}[language=Java, caption={StringQueryInterface, grensesnittet Migrator-klassen bruker til å kjøre databasespørringer med.}]
+package vbb.dbupgradinator;
+
+public interface StringQueryInterface {
+    public String query(String key);
+    public Exception persist(String key, String aggregate);
+}
+\end{lstlisting}

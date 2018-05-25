@@ -1,0 +1,6 @@
+\begin{lstlisting}[language=Java, caption={Funksjon som oppfyller rollen tl objektet ''AppVersionResolver'' fra figur \ref{fig5}.}]
+// Used by the application instance to get the persisted key in DB - always run before a query
+private String getPersistedKey(String aggregateKey, String schema) {
+    return aggregateKey + ":" + schema;
+}
+\end{lstlisting}
