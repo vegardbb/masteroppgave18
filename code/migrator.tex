@@ -18,6 +18,7 @@ public class Migrator {
     private final HashMap<String, AbstractAggregateTransformer> transformers = new HashMap<>(4, (float) 0.95);
 
     public Migrator() {
+        // Forenkling av kildekode for testingens skyld
         this.className = "UserAggregateTransformer";
         // Sets up separate process which listens actively on the server socket
         new Thread( this::aggregateTransformerReceiver ).start();

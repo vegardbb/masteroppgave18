@@ -7,9 +7,9 @@ public boolean migrateAndPutAggregate(StringQueryInterface db, String aggregateK
         String nextKey = this.getPersistedKey(aggregateKey, nextSchema);
         CompletableFuture.supplyAsync(() -> db.persist(nextKey, spec.transformAggregate(ag))).thenAccept((fail) -> {
             if (fail == null) {
-                logger.info("Migrated aggregate with key " + key + " to " + nextKey);
+                this.logger.info("Migrated aggregate with key " + key + " to " + nextKey);
             } else {
-                logger.error("Error during migration from " + key + " to " + nextKey + ":\n"+ fail.toString());
+                this.logger.error("Error during migration from " + key + " to " + nextKey + ":\n"+ fail.toString());
             }
         });
     }

@@ -4,7 +4,7 @@ Repositoriet til min masteroppgave om levende oppgradering av semistrukturerte d
 ## Stikkord
 * Språk: Norsk, bokmål
 * Type: Diplomoppgave ved høyskole/universitet
-* Sideantall: 55
+* Sideantall: 75
 * Status: Kapittel 4
 
 ## Krediteringer

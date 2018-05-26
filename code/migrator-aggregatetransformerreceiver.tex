@@ -1,4 +1,4 @@
-\begin{lstlisting}[language=Java, caption={Dynamisk metode i Migrator som kjøres i separat tråd.}]
+\begin{lstlisting}[language=Java, caption={Metoden \emph{addTransformer}, og metoden \emph{aggregateTransformerReceiver}, som kjøres i en separat tråd idet \textbf{Migrator}-konstruktøren kalles.}]
 // Addition of transformer class to the HashMap
 private void addTransformer(AbstractAggregateTransformer t) { this.transformers.put(t.getAppVersion(), t); }
 
@@ -19,7 +19,7 @@ private void aggregateTransformerReceiver() {
                 this.addTransformer(tran);
             }
         } catch (Exception e) {
-            logger.error("An error occurred in AggregateTransformerReceiver ", e);
+            this.logger.error("An error occurred in AggregateTransformerReceiver ", e);
         }
     }
 }

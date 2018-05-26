@@ -12,12 +12,12 @@ public String getAndMigrateAggregate(StringQueryInterface db, String aggregateKe
                 String migratedAggregate = spec.transformAggregate(aggregate);
                 Exception fail = db.persist(nextKey, migratedAggregate);
                 if (fail == null) { return true; }
-                logger.error("Error during migration from " + key + " to " + nextKey + ":\n"+ fail.toString());
+                this.logger.error("Error during migration from " + key + " to " + nextKey + ":\n"+ fail.toString());
             }
             return false;
         }).thenAccept((b) -> {
             if (b) {
-                logger.info("Migrated aggregate with key " + key + " to " + nextKey);
+                this.logger.info("Migrated aggregate with key " + key + " to " + nextKey);
             }
         });
     }

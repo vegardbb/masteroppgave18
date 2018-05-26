@@ -5,7 +5,6 @@
 \usepackage{graphicx}    % Figurer
 \usepackage{amssymb}     % Symboler
 \usepackage{mathrsfs}    % Matte
-%\usepackage{mathaccent}  % Matte
 \usepackage{amsmath}     % Matte
 \usepackage{color}
 \usepackage{listings}
@@ -21,7 +20,7 @@
   showstringspaces=false,
   columns=flexible,
   basicstyle={\small\ttfamily},
-  numbers=none,
+  numbers=left,
   numberstyle=\tiny\color{gray},
   keywordstyle=\color{blue},
   commentstyle=\color{dkgreen},
@@ -77,3 +76,6 @@
 \renewcommand{\footrulewidth}{0.1ex}
 \fancypagestyle{plain}{\fancyhf{}\fancyfoot[LE,RO]{\thepage}\renewcommand{\headrulewidth}{0ex}}
 \addto\captionsnorsk{\renewcommand{\chaptername}{Kapittel}}
+
+\renewcommand{\lstlistingname}{Kodeoppføring}
+\renewcommand{\lstlistlistingname}{Kodeoppføringer}
