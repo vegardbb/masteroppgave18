@@ -62,13 +62,19 @@ Figur \ref{fig5} viser hvordan den logiske strukturen til webapplikasjoner, som 
 \begin{description}
   \item [REST-API] er applikasjonsgrensesnittet visningslogikken kommuniserer med via HTTP. De fire typiske kommandoene grensesnittet betjener er HTTP-verbene \texttt{GET}, \texttt{PUT}, \texttt{POST} og \texttt{DELETE}.
   \item [Applikasjonslogikken] til webapplikasjonen er kode som behandler HTTP-forespørsler og oppretter HTTP-responser. Den videresender både skjemanøkkel og aggregatnøkkel ned til DBUpgradinator, som handterer og besvarer spørringen.
-  \item [AbstractAggregateTransformer] er et objekt som transformer aggregater som enten er mottatt fra en HTTP-forespørsel (PUT eller POST) eller mottatt fra databasen som et resultat av en GET-forespørsel. Selve transformasjonsfunksjonen er implemtert av applikasjonens utviklere eller vedlikeholdere.
-  \item [Migrator] er det objektet i pakken som utfører alle spørringer mot databasen, både for å betjene brukerforespørsler, og for å persistere migrerte aggregater, opprettet av \textbf{Abstract}\-\textbf{Aggregate}\-\textbf{Transformer}-objektet på strengformat. Derfor er DBUpgradinator modellert som et eget lag i webapplikasjonens logiske stakk, plassert under appliaksjonslogikken og over databasegrensesnittet ''VoldemortClient'', i figur \ref{fig5}.
-  \item [AggregateTransformerReceiver] er en modul som mottar et \textbf{AbstractAggregateTransformer} - objekt via en I/O-operasjon, og holder rede på det i programminnet.
-  \item [AppVersionResolver] Oppgaven til denne modulen er å kople dataobjektets nøkkel i en innkommende HTTP-spørring (k) med applikasjonsversjonens nøkkel (x) på formen \texttt{k + ":" + x}
-  \item [StringQueryInterface] Modul som sender GET og PUT - spørringer for Migrator-objektet til ''VoldemortClient''.
+  \item [DBUpgradinator] - Programmet som migrerer hvert aggregat, asynkront fra brukerforespørsler.
   \item [VoldemortClient] er klientprogrammet til Project Voldemort. Det utfører databasekall til \(N\) databasenoder. VoldemortClient er også ansvarlig for å kontrollere aggregatenes vektorklokke\-versjoner når den mottar spørringsresultater fra av hver av disse nodene før den returner et endelig spørreresultat. Ved skriveoperasjoner venter klienten på \(W\) bekreftelser før den besvarer applikasjonen. Ved leseoperasjoner  venter klienten på \(R\) bekreftelser. 
   \item [Voldemort Server] - Én eller flere databaseprosesser som lagrer og henter data.
+\end{description}
+
+DBUpgradinator består av følgende elementer, som vist i boksen til høyre i figur \ref{fig5}:
+
+\begin{description}
+  \item [Migrator] er det objektet i pakken som utfører alle spørringer mot databasen, både for å betjene brukerforespørsler, og for å persistere migrerte aggregater, opprettet av \textbf{Abstract}\-\textbf{Aggregate}\-\textbf{Transformer}-objektet på strengformat. Derfor er DBUpgradinator modellert som et eget lag i webapplikasjonens logiske stakk, plassert under appliaksjonslogikken og over databasegrensesnittet ''VoldemortClient'', i figur \ref{fig5}.
+  \item [AggregateTransformerReceiver] er en modul som mottar et \textbf{AbstractAggregateTransformer} - objekt via en I/O-operasjon, og holder rede på det i programminnet.
+  \item [AppVersionResolver] Oppgaven til denne modulen er å kople dataobjektets nøkkel i en innkommende HTTP-spørring (k) med applikasjonsversjonens nøkkel (x) på formen \texttt{k + '':'' + x}
+  \item [AbstractAggregateTransformer] er et objekt som transformer aggregater som enten er mottatt fra en HTTP-forespørsel (PUT eller POST) eller mottatt fra databasen som et resultat av en GET-forespørsel. Selve transformasjonsfunksjonen er implemtert av applikasjonens utviklere eller vedlikeholdere.
+  \item [StringQueryInterface] Modul som sender GET og PUT - spørringer for Migrator-objektet til ''VoldemortClient''.
 \end{description}
 
 % Figur 6
@@ -109,9 +115,9 @@ Aktivitetsdiagrammet i figur \ref{fig7} beskriver systemets oppførsel når en G
 
 Aktivitetsdiagrammet i figur \ref{fig8} beskriver systemets oppførsel når applikasjons\-tjener\-tråden mottar resultatet fra GET-forespørselen beskrevet i figur \ref{fig7}. DBUpgradinator migrerer aggregatet returnert fra GET-spørringen hvis det er behov for det. Når applikasjonen mottar et aggregat fra VoldemortClient, sender den både aggregatet og nøkkelen til DBUpgradinator.
 
-Pakken kontrollerer om aggregatet er av den nyeste skjemaversjonen, det vil si at det ikke finnes noen transformatorobjekt hvis ''nå''-versjon tilsvarer aggregatets skjemaversjon. Hvis dette er tilfelle, gjør DBUpgradinator ingenting med spørreresultatet, og overlatet eksekveringskontroll tilbake til applikasjonstjeneren, som putter aggregatet inn i body-feltet til en HTTP-respons, som til slutt sendes tilbake til applikasjonsklienten.
+Pakken kontrollerer om aggregatet er av den nyeste skjemaversjonen, det vil si at det ikke finnes noen transformatorobjekt hvis ''nå''-versjon tilsvarer aggregatets skjemaversjon. Hvis dette er tilfelle, overlater DBUpgradinator eksekveringskontroll tilbake til applikasjonstjeneren direkte, som putter aggregatet inn i body-feltet til en HTTP-respons, som til slutt sendes tilbake til applikasjonsklienten.
 
-\ldots
+I det motsatte tilfelle sender programmet aggregatet inn i transformasjonsfunksjonen, som lager en ny streng utifra strengargumentet den fikk tilsendt. Ved hjelp av prosessen \emph{AppVersionResolver} lager programmet en ny nøkkel der skjemaversjon\-suffikset tilsvarer den strengen transformatorobjektet indikerer er navnet på det neste skjemaet. Dernest sendes en ny databasespørring der det migrerte aggregatet opprettes/oppdateres (put-kall) på den nye nøkkelen, fra en separat tråd enn den som betjener den brukerinitierte forespørselen. Med en gang databasespørringen til det migrerte aggregatet tilsendes StoreClient, returneres spørreresultatet til applikasjonstjeneren.
 
 \newpage
 
@@ -125,7 +131,11 @@ Pakken kontrollerer om aggregatet er av den nyeste skjemaversjonen, det vil si a
 
 Aktivitetsdiagrammet i figur \ref{fig9} beskriver webapplikasjonens oppførsel når en PUT-forespørsel fra en applikasjonstjener hvis skjemaversjon er \emph{j}, mens produksjonsmiljøet er under oppgradering av dataskjemaet fra versjon \emph{j} til \emph{k}, der \emph{k} etterfølger \emph{j}.
 
-Forretningsplanen for en skriveforespørsel er omvendt av den vi så for leseforespørsler i figurene \ref{fig7} og \ref{fig8}. Her blir DBUpgradinator kontaktet før databasespørringen sendes. Årsaken er at aggregatet ved PUT eller POST er gitt av klienten, sammen med både dets påtenkte skjema og dets statiske nøkkel. Igjen vil DBUpgradinator kontrollere skjemaversjonen, og asynkront migrere aggregatet ved å opprette en ny streng basert på det. \ldots
+Forretningsordenen for en skriveforespørsel er omvendt av den vi så for leseforespørsler i figurene \ref{fig7} og \ref{fig8}. Her blir DBUpgradinator kontaktet før databasespørringen sendes. Årsaken er at aggregatet ved PUT eller POST er gitt av klienten, sammen med både dets påtenkte skjema og dets statiske nøkkel. Igjen vil DBUpgradinator kontrollere skjemaversjonen, og asynkront migrere aggregatet ved å opprette en ny streng basert på det, hvis skjemanøkkelen som kommer fra forespørselen ikke er den nyeste. Etter å ha utført migrasjonen av det oppdaterte aggregatet og sendt resultatet til databaseklienten i form av et put-funksjonskall, hopper programmet tilbake inn i applikasjonslogikken, og sender et nytt put-kall til samme databaseklient.
+
+Dette databasekallet gjøres for å oppdatere det objektet som i prinsippet er det samme aggregatet, men for det gamle skjemaet. Årsaken til at DBUpgradinator oppdaterer aggregatet for det nye skjemaet, samtidig som for det gamle, er at ved rullerende oppgradering av en klynge applikasjonstjenere har man en miks av tjenere som opererer med den gamle versjonen av tjenerprogrammet og tjenere som kjører den nye. Mengden av nye tjenerversjoner øker gradvis på bekostning av mengden av de gamle, naturlig nok, ved en rullerende applikasjonsoppdatering.
+
+Når applikasjonen mottar en bekreftelse fra et put-kall opprettes en HTTP-respons som informerer om hvorvidt skriveoperasjonen lyktes eller ikke. Responsen sendes tilbake til applikasjonsklienten over TCP/IP - forbindelsen.
 
 \newpage
 

@@ -20,6 +20,7 @@ Tanker om programmeringen og modelleringen rundt masteroppgaven
 Alternativt kan man benytte RMI - Remote Method Invocation, det vil si at hver enkelt databaseklient kontakter en kjørende "oppgraderingskoordinator".
 
 # Om det fysiske perspektiv av testarkitekturen
+ * TODO: Statisk routing i proejct voldemort
  * Hver enkelt av de fire applikasjonsnodene gjestes av DigitalOcean, og alle er spredd utover fire forskjellige datasentre i London, Amsterdam (to separate datasentre), og Frankfurt. Dette gjør at hver enkelt forespørsel til tjener kan gå omtrent like raskt med det gitte replikeringsskjema.
  * Replikeringsmønstre, 1 node per senter
    * AMS1 -> AMS1; LON1; FRA1

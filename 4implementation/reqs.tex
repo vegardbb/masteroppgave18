@@ -8,10 +8,11 @@ I kraft av å demonstrere et praktisk konsept vil modulen gjøre visse antakelse
 
 For å realisere tillatelsen av versjonsmiks mellom forskjellige applikasjonstjenere i webapplikasjonen DBUpgradinator er installert i vil dets implementasjon ikke oppdatere aggregater direkte, men heller lage et nytt et med et annerledes streng-prefiks. Følgelig vil den samme ''tuppelen'' lagres dobbelt opp hvis miksen av skjemaversjoner er av størrelse 2.
 
-Her listes øvrige antakelser for prototypeimplementasjonen av DBUpgradinator, databasen den kommer til å operere på, webapplikasjonen den testes i, og produksjonsmiljøet DBUpgradinator testes i.
+Her listes øvrige antakelser, begrensninger og spesifikke designvalg for prototypeimplementasjonen av DBUpgradinator, databasen den kommer til å operere på, webapplikasjonen den testes i, og produksjonsmiljøet DBUpgradinator testes i.
 
 \begin{itemize}
-  \item Dataobjekter serialiseres 'client' side, altså er lagringsnodene 'dumme' og backend-tjenerne 'smarte'
+  \item I databasearkitektur modulen testes i serialiseres aggregater 'client' side, altså er lagringsnodene 'dumme' og backend-tjenerne 'smarte'
+  \item Project Voldemort brukes som database i testapplikasjonen
   \item Serialisering (Voldemort): \underline{String}, altså ser den enkelte databasetjener kun strenger og kan ikke lese av skjemaet; videre antas det at databasen bruker LWW - strategien for å løse flettetvister automatisk
   \item Applikasjonsstakken til Voldemort-instansen denne oppgaven tester har en fast konfigurasjon
   \item Nøkler i skjemaet endrer ikke type eller form
@@ -25,19 +26,19 @@ Her listes øvrige antakelser for prototypeimplementasjonen av DBUpgradinator, d
   \item Den enkelte utvikler har ikke behov for å endre nøkkelens struktur eller datatype
   \item Alle nøkler Voldemort mottar er på strengform, selv om nøkler i praksis også kan være en liste av binærdata, derfor støtter ikke DBUpgradinator nedring av nøkkelens skjemastruktur
   \item Webapplikasjonen som modulen testes i har en RESTful - arkitektur
-  \item For ett bestemt produksjonsmiljø er det til enhver tid kun én klientinstans som kommuniserer med de andre; denne klientinstansen sender til enhver tid transformasjonsobjekter i ordentlig rekkefølge, det vil si at klienten gjør seg ferdig med å sende ett transformasjonsobjekt for én skjemaversjon til alle applikajsonstjenere før denne sender over transformasjonsobjektet som gjelder for den etterfølgende versjonen
+  \item For ett bestemt produksjonsmiljø er det til enhver tid kun én klientinstans som kommuniserer med de andre; denne klientinstansen sender til enhver tid transformasjonsobjekter i ordentlig rekkefølge, det vil si at klienten gjør seg ferdig med å sende ett transformasjonsobjekt for én skjemaversjon til alle applikasjonstjenere før denne sender over transformasjonsobjektet som gjelder for den etterfølgende versjonen
   \item Når transformasjonsobjekter sendes, så sendes de i en bestemt rekkefølge, altså er ikke rekkefølgen applikasjonstjenere mottar transformatorer i tilfeldig - denne antakelsen tillater oss å spesialisere og forenkle enkelte detaljer av kildekoden som kjører hos applikasjonsinstansene
+  \item Modulen skal kjøre i produksjonsmiljøet til en webapplikasjon skrevet i Java
   \item Til enhver tid oppgraderes applikasjonen kun én versjon ad gangen, det vil si at på det meste er to forskjellige utgaver av versjonen som opererer i produksjonsmiljøet på ett og samme tidspunkt
 \end{itemize}
 
 \subsection{Funksjonelle krav}
 
 \begin{enumerate}
-  \item DBUpgradinator er en modul som skal kjøre i produksjonsmiljøet til en webapplikasjon skrevet i Java
   \item DBUpgradinator skal lage én ekstra databasespørring for hver nye transformasjon som påføres et aggregat
   \item Ved en GET-forespørsel til aggregatet med nøkkel \emph{x} fra en applikasjonsinstans som bruker en ny skjemaversjon \emph{k} skal DBUpgradinator også opprette en GET-forespørsel etter det samme aggregatet men med prefikset til den foregående skjemaversjonen i nøkkelen, \emph{j}
   \item Hver enkelt applikasjonsinstans har kontroll over versjonen av dataskjemaet sitt, som identifiseres ved en hashstreng som konkatineres med IDen til hver enkelt dataelement før PUT sendes til databasen
-  \item Oppgraderingsverktøyet vil opprette en ny tuppel i lageret hvis skjema-versjon-suffiks er annerledes og dataobjekt-ID-prefiks er likens prefikset til tuppelen som oppgraderes; således kan det distribuerte systemet kjøre en mikset tilstand mens datamigrasjonen foregår
+  \item DBUpgradinator vil opprette en ny tuppel i lageret hvis skjema-versjon-suffiks er annerledes og dataobjekt-ID-prefiks er likens prefikset til tuppelen som oppgraderes; således kan det distribuerte systemet kjøre en mikset tilstand mens datamigrasjonen foregår
   \item Ved kjøring av DBUpgradinator: Hvis programmet mottar en spørring etter et aggregat som tilhører den nyeste skjema-versjonen (f.eks en GET på en nøkkel hvis skjemaversjon-suffiks tilsvarer versjonsstrengen til den nyeste skjemaversjonen) så vil ikke en migrasjon med transformator-klassen bli utført
 \end{enumerate}
 
@@ -45,6 +46,7 @@ Her listes øvrige antakelser for prototypeimplementasjonen av DBUpgradinator, d
 
 \begin{enumerate}
   \item Tilgjengelighet: Det skal være mulig å forespørre data fra databasen mens datamigrasjon er iverksatt. Dette kravet evalueres ikke på kvantitativt, men på kvalitativt grunnlag, det vil si ved å kjøre DBUpgradinator i et simulert produksjonsmiljø, det vil si en applikasjon som ikke mottar forespørsler fra klienter som kommuniserer med HTTP.
-  \item Ytelse: Ved rullerende eller lat datamigrasjon utsettes databasen for en vesentlig degradering i gjennomstrømskapasitet, målt i spørringer per sekund. Denne hemmelsen må være minimal i den implementerte migrasjonsløsningen.
+  \item Ytelse: Ved rullerende, eller lat datamigrasjon, utsettes databasen for en vesentlig degradering i gjennomstrømskapasitet, målt i spørringer per sekund. Denne hemmelsen må være minimal i den implementerte migrasjonsløsningen.
   \item Modularitet: Løsningen som programmeres bør interferere minst mulig med eksisterende kildekode i Project Voldemort, primært gjennom å utvikle det som et separat prosjekt.
 \end{enumerate}
+
