@@ -1,0 +1,19 @@
+% Tjeneste i fotnote: 
+\section{WebshopSimulator} \label{prog}
+
+Webapplikasjonen som DBUpgradinator testes på, kalles for \emph{WebshopSimulator}. Dens arkitektur følger både det logiske perspektivet, prosess\-perspektivet og den fysiske dittoen skissert i figurer \ref{fig5}, \ref{fig6}, \ref{fig7}, \ref{fig8}, \ref{fig9}, og \ref{fig10}. Testapplikasjonen etterkommer også systembegrensningene opplistet i delkapittel 4.2.2. Dette delkapitlet skisserer strukturen til testapplikasjonens kildekode, dets avhengigheter, og hvordan tjenerprogrammet blir kompilert til en kjørbar .jar - fil.
+
+\subsection{Simulasjon av brukerforespørsler}
+
+Frontend-delen av webapplikasjonen er skrevet i Javascript, og kjøres som et separat klientprogram. Dette skriptet kjøres i kjøretidsmiljøet NodeJS. Klientprogrammet kalles for \emph{WebAppSimulator}. Dets hovedoppgave simulerer en kontinuerlig serie med forespørsler som jevnfordeles blant applikasjonsinstansene. Programmets funksjonalitet kan i korte trekk inndeles i tre satser:
+
+\begin{enumerate}
+  \item Programmet sender klyngen av tjenere en serie av POST-forespørsler, slik at nye aggregater lagres på hver av de tomme nodene i databasen. Totalt 8 GB i serialiserte JSON-objekter sendes applikasjonsinstansene og Voldemort-klientene. Samtidig holder en egen loggeprosess styr på ID-verdiene som genereres av tjenerne som tilsendes denne simulerte klienten
+  \item Etter at den første satsen er ferdig, terminerer programmet. Da må applikasjonsloggen, generert av frontendsimulatoren, transformeres til en liste av unike IDer. Til å oppnå dette formålet brukes tekstbehandlingsverktøyet Vim, en kommandolinjeapplikasjon som kan redigere alle linjer i loggen samtidig ved hjelp av regulære uttrykk og dets kraftige kommandolinjesyntaks. Dernest må klientsimulasjonsprogrammet redigeres slik at listen av aggregat-IDer blir lest inn fra korrekt filsti, og slik at funksjonen som kjører den tredje satsen blir kjørt neste gang programmet blir startet opp fra kommandolinjen
+  \item Programmet sender en blanding av 30 prosent PUT og 70 prosent GET - forespørsler til databasenodene, i sum én HTTP-forespørsel per ID i listen som ble oppretttet i forrige steg.
+\end{enumerate}
+
+For å generere data til POST - forespørslene i steg 1 og PUT - forespørslene i steg 3, brukes en kommea\-separert seed-fil som inneholder fornavn, etternavn, postkode, post
+
+\footnote{Navn - og addresser i seed-filen stammer fra gratistjenesten Fake Name Generator, som tilbyr inntil 100 000 navn og addresser i en kommaseparert fil per bestilling. URL: \url{https://www.fakenamegenerator.com/order.php}}
+
