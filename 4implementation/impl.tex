@@ -2,23 +2,20 @@
 
 DBUpgradinator er skrevet i det objektorienterte programmeringsspråket Java. Java er et statisk, nominelt, og sterkt typet språk. Med nominelt menes at type-ekvivalens eller type-kompabilitet baseres på eksplisitte deklarasjoner i kildekoden. I Java deklareres heltall representert ved fire bytes med nøkkelordet \emph{int}. Med sterk typing menes at en type, enten det er en primitiv datatype, streng eller hjemmelaget klasse, alltid blir deklarert for ethvert objekt i kildekoden. At et språk er statisk typet betyr at en variabels type kontrolleres idet kildekoden kompileres, ikke under kjøring.
 
-%Den sterke, statiske typekontrollen til Java påla én lei begrensning for implementasjonen av migrasjonsmodulen. Denne begrensningen handler om klassen utvikleren implementerer en subklasse for, \textbf{AbstractAggregateTransformer}.    % TODO: Flytt siste setning til diskusjonen om AAT
+Som vist i figur \ref{fig5}, består DBupgradinator av tre klasser (firkant): \textbf{AbstractAggregateTransformer}, \textbf{Migrator} og \textbf{StringQueryInterface}. Migrator - klassen innehar tre forskjellige migrasjonsmetoder, og to moduler (avrundet firkant): \emph{AppVersionResolver} og \emph{AggregateTransformerReceiver}. I implementasjonen er disse to elementene henholdsvis representert ved funksjonene \emph{getPersistedKey} og \emph{aggregateTransformerReceiver}. Koden i migrasjonsmetodene \emph{getAndMigrateAggregate}, \emph{putAndMigrateAggregate} og \emph{postAndMigrateAggregate} er skrevet i henhold til aktivitetsdiagrammene \ref{fig7}, \ref{fig8} og \ref{fig9}.
 
-Som vist i figur \ref{fig5}, består DBupgradinator av tre klasser (firkant): \textbf{AbstractAggregateTransformer}, \textbf{Migrator} og \textbf{StringQueryInterface}. Migrator - klassen innehar to moduler (avrundet firkant): \emph{AppVersionResolver} og \emph{AggregateTransformerReceiver}. I implementasjonen er disse to elementene henholdsvis representert ved funksjonene \emph{getPersistedKey} og \emph{aggregateTransformerReceiver}.
+\subsection{AbstractAggregateTransformer}
 
-% TODO: Én - 1 - subseksjon for hver klasse i dbupgradinator - pakken
+\input{code/abstractaggregatetransformer}
 
-\begin{description}
-  \item [AbstractAggregateTransformer] Dette er en abstrakt klasse med én tilstandsvariabel som indikerer skjemaversjonen til transformasjonsklassen mottar aggregater fra, og én som indikerer versjonen til det skjemaet som den transformerte verdien gjelder for. Klassen har én abstrakt metode, som implementeres i en subklasse. Denne subklassen blir programmert og kompilert til en binær \texttt{.class}-fil av den individuelle applikasjonsprogrammerer. Den eneste abstrakte metoden i klassen er \texttt{transformAggregate}, som påkalles når en forespørsel fra webapplikasjonens gamle versjon (som er under rullerende oppgradering) tilsendes databaseklienten, den påkalles både når klienten mottar data fra datalageret, etter at en \texttt{InconsistencyResolver} - instans har flettet divergerende elementer; argumenter: key (fra DB), value (deserialisert), så vel som når klienten mottar data fra applikasjonen, altså fra forespørselen direkte
-  \item [Migrator] Dette er en \texttt{public} hovedklasse som eksponerer DBUpgradinator sin funksjonalitet til programvareutvikleren. Dens tilstand inkorpurerer aggregatets objekttype - det vil si domeneklassen til aggregatet, som sendes inn i transformasjonsfunksjonen til AbstractAggregateTransformer-klassen som verdi-argument. Transformasjonsfunksjonen blir overskrevet av den implementerte klassen. En instans av Migrator spør etter data på forespørsler tilsendt tjeneren med HTTP-protokollen, og persisterer samtidig migrerte aggregater returnert av transformasjonsfunksjonen til instansen av AbstractAggregateTransformer
-  \begin{description}
-    \item [aggregateTransformerReceiver] er en frittstående prosess som ikke er del av en spørrings livsløp. Kodeobjektet er en funksjon som mottar AggregateTransformer-objekter og instansierer dem som instanser av den abstrakte superklassen \textbf{AbstractAggregateTransformer}. og holder rede på dem i versjonsrekkefølge i en privat liste. Funksjonen har også ansvaret for å påkalle transformasjonsmetoden til hvert objekt.
-    \item [getPersistedKey] Oppgaven til denne modulen er å kople dataobjektets nøkkel i en innkommende HTTP-spørring (k) med applikasjonsversjonens nøkkel (x) på formen \texttt{k + ":" + x}
-  \end{description}
-  \item [StringQueryInterface] Modul som utfører spørringer for Migrator-objektet.
-\end{description}
+\textbf{AbstractAggregateTransformer} er en abstrakt klasse, som har to konstante feltvariable. Verdien på disse feltvariablene defineres når dens konstruktør kalles. Den ene tilstandsvariabelen indikerer skjemaversjonen til transformasjonsklassen mottar aggregater fra, og én som indikerer versjonen til det skjemaet som den transformerte verdien gjelder for. Klassen har én abstrakt metode, som implementeres i en subklasse. Denne subklassen blir programmert og kompilert til en binær \texttt{.class}-fil av den individuelle applikasjonsprogrammerer. Den eneste abstrakte metoden i klassen er \texttt{transformAggregate}, som påkalles når en forespørsel fra webapplikasjonens gamle versjon (som er under rullerende oppgradering) tilsendes databaseklienten, den påkalles både når klienten mottar data fra datalageret, etter at en \texttt{InconsistencyResolver} - instans har flettet divergerende elementer; argumenter: key (fra DB), value (deserialisert), så vel som når klienten mottar data fra applikasjonen, altså fra forespørselen direkte.
 
-En instans av \textbf{Migrator} har en lenket liste av instanser av \textbf{AbstractAggregateTransformer}, som utviklerens egenskrevne klasse AggregateTransformer (markert med rosa omriss i figur \ref{fig6}) arver fra. Det er Migrator-instansen som har ansvar for å utlede skjemaversjonskausalitet med denne lenkede listen og transformere innkommende aggregater, fra databasen så vel som applikasjonen, ved behov.
+% TODO: lindholm1999 brukes for sitatet '' Two classes are the same class (and consequently the same type) if they are loaded by the same class loader and they have the same fully qualified name ''
+Den sterke, statiske typekontrollen til Java pålegger én lei begrensning for implementasjonen av migrasjonsmodulen. Det har seg slik at to klasser er like kun hvis de har samme filstiopphav tillegg til å ha samme kildekode og samme variabelnavn for alle klasser, metoder og tilstandsvariable. hvis de befinner seg i to forskjellige pakker er de ikke identiske.
+\ldots
+Denne begrensningen handler om klassen utvikleren implementerer en subklasse for, \textbf{AbstractAggregateTransformer}.
+
+\subsection{Migrator}
 
 \input{code/migrator}
 \input{code/migrator-loader}
@@ -28,5 +25,27 @@ En instans av \textbf{Migrator} har en lenket liste av instanser av \textbf{Abst
 \input{code/migrator-post}
 \input{code/migrator-put}
 
-Migrasjonssystemet forventer at utvikleren skriver en \texttt{.java} - fil med en klasse som spesialiserer \textbf{AbstractAggregateTransformer} 
+\subsection{StringQueryInterface}
+
+\input{code/stringqueryinterface}
+
+\textbf{StringQueryInterface} er en liten mengde med funksjoner utfører spørringer for Migrator-instansen. Kodeoppføring \ref{queryinter} viser hele dette grensensitt, som eksponerer to metoder: \emph{get} og \emph{put}. \emph{put} - metoden forventes å returnere en instans av \textbf{Exception}. Utvikleren forventes å skrive en separat klasse som implementerer dette grensesnittet.
+
+
+
+% TODO: Én - 1 - subseksjon for hver klasse i dbupgradinator - pakken
+
+\begin{description}
+
+  \item [Migrator] Dette er en \texttt{public} hovedklasse som eksponerer DBUpgradinator sin funksjonalitet til programvareutvikleren. Dens tilstand inkorpurerer aggregatets objekttype - det vil si domeneklassen til aggregatet, som sendes inn i transformasjonsfunksjonen til AbstractAggregateTransformer-klassen som verdi-argument. Transformasjonsfunksjonen blir overskrevet av den implementerte klassen. En instans av Migrator spør etter data på forespørsler tilsendt tjeneren med HTTP-protokollen, og persisterer samtidig migrerte aggregater returnert av transformasjonsfunksjonen til instansen av AbstractAggregateTransformer
+  \begin{description}
+    \item [aggregateTransformerReceiver] er en frittstående prosess som ikke er del av en spørrings livsløp. Kodeobjektet er en funksjon som mottar AggregateTransformer-objekter og instansierer dem som instanser av den abstrakte superklassen \textbf{AbstractAggregateTransformer}. og holder rede på dem i versjonsrekkefølge i en privat liste. Funksjonen har også ansvaret for å påkalle transformasjonsmetoden til hvert objekt.
+    \item [getPersistedKey] Oppgaven til funksjonen \emph{getPersistedKey} er å kople dataobjektets nøkkel i en innkommende HTTP-spørring (k) med applikasjonsversjonens nøkkel (x) på formen \texttt{k + ":" + x}
+  \end{description}
+  \item [StringQueryInterface]
+\end{description}
+
+En instans av \textbf{Migrator} har en lenket liste av instanser av \textbf{AbstractAggregateTransformer}, som utviklerens egenskrevne klasse AggregateTransformer (markert med rosa omriss i figur \ref{fig6}) arver fra. Det er Migrator-instansen som har ansvar for å utlede skjemaversjonskausalitet med denne lenkede listen og transformere innkommende aggregater, fra databasen så vel som applikasjonen, ved behov.
+
+Migrasjonssystemet forventer at utvikleren skriver en \texttt{.java} - fil med en klasse som spesialiserer \textbf{AbstractAggregateTransformer}.
 

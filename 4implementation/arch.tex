@@ -146,3 +146,5 @@ I hvert datasenter betjenes én virtuell maskin, eller \underline{droplet}, som 
   \item Databasenoden, som lagrer og henter data på kommando fra Voldemort-klientprogrammene
 \end{enumerate}
 
+Figur \ref{fig10} viser også at hver kjørende instans av Voldemort-klienten fra applikasjonstjenerprogrammet har én replikeringsassosiasjon med hver av de tre databasenodene stasjonert på de andre virtuelle maskinene. Det er ikke nødvendigvis slik hash-strategien er konfigurert i databaseinstansen, figuren er ment å illustrere at klientprogrammet til Voldemort er del av applikasjonsprosessen, og det er den som utførerer spørringer mot de enkelte databasenoder for å persistere og lese repliaker.
+
