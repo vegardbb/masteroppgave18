@@ -38,8 +38,6 @@ Disse fire separate perspektivene kan også kombineres sammen i et femte perspek
 
 Videre må det nevnes at samtlige perspektiver i metamodellen er valgfrie, enhver arkitekt står fri til å gjøre justeringer på sitt dokument i henhold til de krav som stilles systemarkitekturen som modelleres. DBUpgradinator modelleres med de tre første perspektivene i 4+1-metamodellen. Ettersom prosjekter er et enmannsarbeid er et sett av diagrammer som utgjør et eget utviklingsperspektiv ikke strengt nødvendig. Ett perspektiv som i kontekst av distribuerte applikasjoner er uunnværlig er det fysiske perspektivet.
 
-%\newpage
-
 \subsection{Det logiske perspektiv}
 % Figur 5
 \begin{figure}[hbtp]
@@ -48,8 +46,6 @@ Videre må det nevnes at samtlige perspektiver i metamodellen er valgfrie, enhve
     \caption{Logisk oversikt over moduler i det typiske produksjonsmiljøet DBUpgradinator opererer i. Klassene som DBUpgradinator består av nevnes med navn.}
     \label{fig5}
 \end{figure}
-
-%\newpage
 
 Figur \ref{fig5} viser en oversikt over de ulike bestanddelene i DBUpgradinator. Figuren viser også DBUpgradinator sin logiske relasjon til REST-webapplikasjonen brukt til å teste dette migrasjonsverktøyet i. Det logiske perspektivet (eng. ''view'') beskriver også de ulike atomiske moduler webapplikasjonen består av.
 
@@ -80,7 +76,7 @@ DBUpgradinator består av følgende elementer, som vist i boksen til høyre i fi
 % Figur 6
 \begin{figure}[hbtp]
   \centering
-  \includegraphics[scale=0.5]{fig/dbupgradinator-logisk-2.png}
+  \includegraphics[scale=0.6]{fig/dbupgradinator-logisk-2.png}
   \caption{Kommunikasjonsdiagram som illustrerer forholdet mellom en utvikler og en applikasjonstjener der DBUpgradinator benyttes for å migrere data levende.}
   \label{fig6}
 \end{figure}
@@ -89,28 +85,24 @@ Figur \ref{fig6} forteller oss hvem det er som har ansvar for å skrive aggregat
 
 Etter å ha implementert transformasjonsklassen (markert med rosa omriss i kommunikasjonsdiagrammet) som spesialiserer \textbf{AbstractAggregateTransformer}, kompilerer utvikleren filen til en \texttt{.class} - fil og sender den til hver applikasjonstjener som kjører i systemet. AggregateTransformerReceiver-modulen leser inn alle oktettene i filen tjeneren mottar, inn en byte-matrise og skaper et objekt i minnet. Dette objektet opprettes som en instans av \textbf{AbstractAggregateTransformer}. Dette objektet blir dernest plassert i \textbf{Migrator}-instansens liste av transformatorer. I \ref{fig6} er objektinstanser merket med kolon i navnet.
 
-\newpage
-
 \subsection{Prosessperspektivet}
 
 % Figur 7
 \begin{figure}[hbtp]
-    \centering
-    \includegraphics[scale=0.5]{fig/dbupgradinator-prosess-1.png}
-    \caption{Aktivitetsdiagram som illustrerer hvordan DBUpgradinator interfererer i applikasjonslogikken ved en \texttt{GET} - forespørsel før databaseklienten mottar spørringen.}
-    \label{fig7}
+  \centering
+  \includegraphics[scale=0.8]{fig/dbupgradinator-prosess-1.png}
+  \caption{Aktivitetsdiagram som illustrerer hvordan DBUpgradinator interfererer i applikasjonslogikken ved en \texttt{GET} - forespørsel før databaseklienten mottar spørringen.}
+  \label{fig7}
 \end{figure}
 
-Aktivitetsdiagrammet i figur \ref{fig7} beskriver systemets oppførsel når en GET-forespørsel fra en applikasjonstjener hvis skjemaversjon er j, mens produksjonsmiljøet er under oppgradering av dataskjemaet fra versjon j til k, der k etterfølger j. Applikasjonslogikken kaller på AppVersionResolver\-modulen i DBUpgradinator for å sette sammen aggregatets nøkkel med dataskjemanøkkelen. Dernest kaller tjeneren på \texttt{get} - metoden til en StoreClient - instans. Tråden som utførte dette databasekallet vil da bli blokkert.
-
-\newpage
+Aktivitetsdiagrammet i figur \ref{fig7} beskriver systemets oppførsel når en GET-forespørsel fra en applikasjonstjener hvis skjemaversjon er j, mens produksjonsmiljøet er under oppgradering av dataskjemaet fra versjon \emph{j} til \emph{k}, der \emph{k} etterfølger \emph{j}. Applikasjonsjeneren kaller på AppVersionResolver\-modulen i DBUpgradinator for å sette sammen aggregatets nøkkel med dataskjemanøkkelen. Dernest kaller tjeneren på \texttt{get} - metoden til en StoreClient - instans. Tråden som utførte dette databasekallet vil da bli blokkert.
 
 % Figur 8
 \begin{figure}[hbtp]
-    \centering
-    \includegraphics[scale=0.5]{fig/dbupgradinator-prosess-2.png}
-    \caption{Aktivitetsdiagram som illustrerer hvordan DBUpgradinator interfererer i applikasjonslogikken ved en \texttt{GET} - forespørsel etter at spørringen er ferdig.}
-    \label{fig8}
+  \centering
+  \includegraphics[scale=0.6]{fig/dbupgradinator-prosess-2.png}
+  \caption{Aktivitetsdiagram som illustrerer hvordan DBUpgradinator interfererer i applikasjonslogikken ved en \texttt{GET} - forespørsel etter at spørringen er ferdig.}
+  \label{fig8}
 \end{figure}
 
 Aktivitetsdiagrammet i figur \ref{fig8} beskriver systemets oppførsel når applikasjons\-tjener\-tråden mottar resultatet fra GET-forespørselen beskrevet i figur \ref{fig7}. DBUpgradinator migrerer aggregatet returnert fra GET-spørringen hvis det er behov for det. Når applikasjonen mottar et aggregat fra VoldemortClient, sender den både aggregatet og nøkkelen til DBUpgradinator.
@@ -119,14 +111,12 @@ Pakken kontrollerer om aggregatet er av den nyeste skjemaversjonen, det vil si a
 
 I det motsatte tilfelle sender programmet aggregatet inn i transformasjonsfunksjonen, som lager en ny streng utifra strengargumentet den fikk tilsendt. Ved hjelp av prosessen \emph{AppVersionResolver} lager programmet en ny nøkkel der skjemaversjon\-suffikset tilsvarer den strengen transformatorobjektet indikerer er navnet på det neste skjemaet. Dernest sendes en ny databasespørring der det migrerte aggregatet opprettes/oppdateres (put-kall) på den nye nøkkelen, fra en separat tråd enn den som betjener den brukerinitierte forespørselen. Med en gang databasespørringen til det migrerte aggregatet tilsendes StoreClient, returneres spørreresultatet til applikasjonstjeneren.
 
-\newpage
-
 % Figur 9
 \begin{figure}[hbtp]
-    \centering
-    \includegraphics[scale=0.5]{fig/dbupgradinator-prosess-3.png}
-    \caption{Aktivitetsdiagram som illustrerer hvordan DBUpgradinator påvirker applikasjonens oppførsel ved en innkommende \texttt{PUT} - forespørsel.}
-    \label{fig9}
+  \centering
+  \includegraphics[scale=0.6]{fig/dbupgradinator-prosess-3.png}
+  \caption{Aktivitetsdiagram som illustrerer hvordan DBUpgradinator påvirker applikasjonens oppførsel ved en innkommende \texttt{PUT} - forespørsel.}
+  \label{fig9}
 \end{figure}
 
 Aktivitetsdiagrammet i figur \ref{fig9} beskriver webapplikasjonens oppførsel når en PUT-forespørsel fra en applikasjonstjener hvis skjemaversjon er \emph{j}, mens produksjonsmiljøet er under oppgradering av dataskjemaet fra versjon \emph{j} til \emph{k}, der \emph{k} etterfølger \emph{j}.
@@ -137,17 +127,22 @@ Dette databasekallet gjøres for å oppdatere det objektet som i prinsippet er d
 
 Når applikasjonen mottar en bekreftelse fra et put-kall opprettes en HTTP-respons som informerer om hvorvidt skriveoperasjonen lyktes eller ikke. Responsen sendes tilbake til applikasjonsklienten over TCP/IP - forbindelsen.
 
-\newpage
-
 \subsection{Det fysiske perspektiv}
 
 % Figur 10
 \begin{figure}[hbtp]
-    \centering
-    \includegraphics[scale=0.5]{fig/dbupgradinator-physical.png}
-    \caption{Deployment-diagram av webapplikasjonen DBUpgradinator testes i.}
-    \label{fig10}
+  \centering
+  \includegraphics[scale=0.5]{fig/dbupgradinator-physical.png}
+  \caption{Deployment-diagram av webapplikasjonen DBUpgradinator testes i.}
+  \label{fig10}
 \end{figure}
 
-De fire boksene i figur \ref{fig10} refererer til fire forskjellige datasentre. Hver enkelt av de fire applikasjonsnodene gjestes av skyinfrastrukturleverandøren DigitalOcean, og alle er spredd utover fire forskjellige datasentre i London, Amsterdam (to separate datasentre), og Frankfurt am Main.
+De fire boksene i figur \ref{fig10} refererer til fire forskjellige datasentre. Hver enkelt av de fire applikasjonsnodene gjestes av skyinfrastrukturleverandøren DigitalOcean, og alle er spredd utover fire forskjellige datasentre i London, Amsterdam (to av datasentra er lokaliserte her), og Frankfurt am Main.
+
+I hvert datasenter betjenes én virtuell maskin, eller \underline{droplet}, som DigitalOcean kaller dem. Selve maskinvaren blir beskrevet i detalj i delkapittel 5.3. Hver av de virtuelle maskinene kjører to separate programmer (''kjøretidsmiljø'') som lytter på én nettverksport hver. Disse programmene er:
+
+\begin{enumerate}
+  \item Webapplikasjonen, som i \ref{fig10} benytter artefaktene WebShopSimulator.jar og DBUpgradinator.jar til å kjøre selve appliaksjonstjeneren; samtidig benytter prosessen voldemort.jar - filen for å instansiere en klient som replikerer hvert aggregat til tre databasenoder
+  \item Databasenoden, som lagrer og henter data på kommando fra Voldemort-klientprogrammene
+\end{enumerate}
 
