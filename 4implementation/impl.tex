@@ -8,41 +8,57 @@ Som vist i figur \ref{fig5}, består DBupgradinator av tre klasser (firkant): \t
 
 \input{code/abstractaggregatetransformer}
 
-\textbf{AbstractAggregateTransformer} er en abstrakt klasse, som har to konstante feltvariable. Verdien på disse feltvariablene defineres når dens konstruktør kalles. Den ene tilstandsvariabelen indikerer skjemaversjonen til transformasjonsklassen mottar aggregater fra, og én som indikerer versjonen til det skjemaet som den transformerte verdien gjelder for. Klassen har én abstrakt metode, som implementeres i en subklasse. Denne subklassen blir programmert og kompilert til en binær \texttt{.class}-fil av den individuelle applikasjonsprogrammerer. Den eneste abstrakte metoden i klassen er \emph{transformAggregate}, som påkalles når en forespørsel fra webapplikasjonens gamle versjon (som er under rullerende oppgradering) tilsendes databaseklienten, den påkalles både når klienten mottar data fra datalageret, etter at databaseklienten har flettet divergerende elementer; argumenter: key (fra DB), value (deserialisert), så vel som når klienten mottar data fra applikasjonen, altså fra forespørselen direkte.
+\textbf{AbstractAggregateTransformer} er en abstrakt klasse, som har to konstante feltvariable. Verdien på disse feltvariablene defineres når dens konstruktør kalles. Den ene indikerer versjonen til skjemaet transformasjonsklassen mottar aggregater fra, og den andre indikerer versjonen til skjemaet som den transformerte verdien gjelder for.
 
-% TODO: lindholm1999 brukes for sitatet '' Two classes are the same class (and consequently the same type) if they are loaded by the same class loader and they have the same fully qualified name ''
+Klassen har én abstrakt metode, som implementeres i en subklasse. Denne abstrakte metoden heter \emph{transformAggregate}, som påkalles når en forespørsel sendt fra en tjenerinstans som bruker den gamle skjemaversjonen, tilsendes databaseklienten. Oppgaven med å skrive denne subklassen overlates til applikasjonsutviklerne som benytter seg av DBUpgradinator. Etter å ha skrevet kildekoden til subklassen må utvikleren distribuere .java - filen der subklassen er definert, til hver av applikasjonstjenerne manuelt. \texttt{.java} - filen må ligge underordnet samme katalog som den webapplikasjonens kildekode blir kompilert fra. Etterpå må klassen bli kompilert til en binær \texttt{.class}-fil.
 
-Den sterke, statiske typekontrollen til Java pålegger én lei begrensning for implementasjonen av migrasjonsmodulen, angående AAT. Det har seg slik at to klasser er identiske hvis og bare hvis de leses inn av samme klasseinnlaster (eng. ''class loader''), og har samme fulle navn \citep{lindholm1999}, i tillegg til å ineholde ekvivalent kildekode og like navn for alle variabler og metoder. Hvis de befinner seg i to forskjellige pakker er de ikke identiske.
+% Sitat, lindholm1999: ''Two classes are the same class (and consequently the same type) if they are loaded by the same class loader and they have the same fully qualified name''
+Den sterke, statiske typekontrollen til Java pålegger én lei begrensning for implementasjonen av migrasjonsmodulen, angående AAT. Det har seg slik at to klasser er identiske hvis og bare hvis de leses inn av samme klasseinnlaster (eng. ''class loader''), og har samme fulle navn \citep{lindholm1999}, i tillegg til å inneholde ekvivalent kildekode og like navn for alle variabler og metoder. Hvis de befinner seg i to forskjellige pakker er de ikke identiske.
 
-Det ble opprinnelig forsøkt å implementere et eget klientprogram for DBUpgradinator som tillot utviklerne å sende komplierte \texttt{.class} - filer over TCP ved hjelp av 
+Det ble opprinnelig forsøkt å implementere et eget kommandolinjebasert som lar utviklerne sende kompilerte \texttt{.class} - filer over TCP ved hjelp av kalssene \textbf{ObjectOutputStream} og \textbf{ObjectInputStream} fra java.io - pakken. Ettersom den hjemmelagede aggregattransformatoren må være en spesialisering av AbstractAggregateTransformer, en klasse fra DBUpgradinator - modulen, så må artefakten DBUpgradinator.jar legges inn i klientprogrammets prosjektfiler som en avhengighet. En annen kopi av DBUpgradinator.jar er å finne blant webapplikasjonens avhengighetsfiler.
 
-\ldots
-% TODO: Dropp AAT, evt. skriv videre på de andre delkapitlene først
-Denne begrensningen handler om klassen utvikleren implementerer en subklasse for, \textbf{AbstractAggregateTransformer}. Sannsynligvis er denne klassen unødvendig, da man trolig kun trenger å bruke getMethod() - metoden fra reflection-biblioteket for å kalle på hver enkelt transformAggregate - metode.
+Per JVM-spesifikasjonen er klassen \textbf{AbstractAggregateTransformer} fra .jar - filen i klientprogrammet ikke den samme klassen som \textbf{AbstractAggregateTransformer} fra .jar - filen i tjenerprogrammet. Årsaken til det er at det er to forskjellige instanser av systemklasseinnlasteren som leser klassedefinisjonene inn i hver sin instans av JVM. Følgelig vil linje 12 i kodeoppføring \ref{atr} kaste en \textbf{ClassCastException}, og intet transformeringsobjekt blir instansiert.
+
+Den enkleste løsning på dette problemet er å bruke getMethod() - metoden fra reflection-biblioteket for å instansierer hver enkelt transformAggregate - metode som en egen instans av \textbf{Method} - klassen. Ved migrasjon kalles \emph{invoke} - metoden for å kalle på \emph{transformAggregate}. Den returnerte verdien fra invoke - kallet kan da ''castes'' til \textbf{String}, jamfør linje 26 kodeoppføring \ref{ag}.
 
 \subsection{Migrator}
 
+\input{code/migrator}
+
 Migrator er en \texttt{public} klasse som eksponerer DBUpgradinator sin kjernefunksjonalitet til programvareutvikleren. Dens tilstand inkorpurerer aggregatets objekttype - det vil si domeneklassen til aggregatet, som sendes inn i transformasjonsfunksjonen til AbstractAggregateTransformer-klassen som verdi-argument. Transformasjonsfunksjonen blir overskrevet av den implementerte klassen. En instans av Migrator spør etter data på forespørsler tilsendt tjeneren med HTTP-protokollen, og persisterer samtidig migrerte aggregater returnert av transformasjonsfunksjonen til instansen av AbstractAggregateTransformer.
 
-aggregateTransformerReceiver er en funksjon, som kjøres i en separat tråd idet konstruktøren til Migrator kalles, og er følgelig ikke del av en ordinær spørrings livsløp. Kodeobjektet er en funksjon som mottar AggregateTransformer-objekter og instansierer dem som instanser av den abstrakte superklassen \textbf{AbstractAggregateTransformer}. og holder rede på dem i versjonsrekkefølge i en privat liste. Funksjonen har også ansvaret for å påkalle transformasjonsmetoden til hvert objekt.
+En instans av \textbf{Migrator} har en ordliste (\textbf{HashMap}) av instanser av \textbf{AbstractAggregateTransformer}, som utviklerens egenskrevne klasse AggregateTransformer (markert med rosa omriss i figur \ref{fig6}) arver fra. Det er Migrator-instansen som har ansvar for å utlede skjemaversjonskausalitet med denne lenkede listen og transformere innkommende aggregater, fra databasen så vel som applikasjonen, ved behov.
 
-Oppgaven til funksjonen \emph{getPersistedKey} er å kople dataobjektets nøkkel i en innkommende HTTP-spørring (k) med applikasjonsversjonens nøkkel (x) på formen \texttt{k + ":" + x}
+I likhet med Kvolve kan ikke en instans av Migrator slåes av, den er alltid på. Ei heller kan \textbf{AbstractAggregateTransformer} - objekter fjernes fra Migrators transformator\-ordliste, fordi migrasjonsprosessen ikke er styrt på tvungent vis, slik konvensjonen er med relasjonelle databaser. Følgelig kan man konkludere at man ikke kan være sikker på når en ''migrasjonsprosess'' med DBUpgradinator er omme i praksis. Dette kommer av at man da må overvåke alle nøkler i databasen på tvers av skjemaversjonene, hvilket ville ha vært lettere hvis det hadde vært mulig å utføre delvis nøkkeloppslag, på til eksempel skjemasuffikset, i nøkkelverdi\-lagre.
 
-En instans av \textbf{Migrator} har en lenket liste av instanser av \textbf{AbstractAggregateTransformer}, som utviklerens egenskrevne klasse AggregateTransformer (markert med rosa omriss i figur \ref{fig6}) arver fra. Det er Migrator-instansen som har ansvar for å utlede skjemaversjonskausalitet med denne lenkede listen og transformere innkommende aggregater, fra databasen så vel som applikasjonen, ved behov.
-
-Migrasjonssystemet forventer at utvikleren skriver en \texttt{.java} - fil med en klasse som spesialiserer \textbf{AbstractAggregateTransformer}.
-
-\input{code/migrator}
-\input{code/migrator-loader}
 \input{code/migrator-aggregatetransformerreceiver}
+
+\emph{aggregateTransformerReceiver}, som vises i kodeoppføring \ref{atr} kjøres i en separat tråd idet konstruktøren til Migrator kalles, og er følgelig ikke del av en ordinær spørrings livsløp. Kodeobjektet er en funksjon som mottar AggregateTransformer-objekter og instansierer dem som instanser av den abstrakte superklassen \textbf{AbstractAggregateTransformer}. og holder rede på dem i versjonsrekkefølge i en privat liste. Funksjonen har også ansvaret for å påkalle transformasjonsmetoden til hvert objekt.
+
+Funksjonen kalles i en metodereferanse som sendes som et argument inn i \textbf{Thread} - konstruktøren i kroppen til konstruktøren til Migrator. En metodereferanse er et forkortet lambdauttrykk, som kompilatoren i Java 8 forstår og klarer å inferere både antall argumenter og typen til hvert argument.
+
+\input{code/migrator-loader}
+
+I kodeoppføring \ref{load} kan man lese kildekoden til en indre klasse, \textbf{AggregateTransformerLoader}, som er en spesialisering av \textbf{ClassLoader}. En indre klasse er en ikke-statisk klasse, deklarert innen en annen klasse. Denne klassen instansieres på én spesifikk linje i Migrator-klassen, nemlig linje 4 i kodeoppføring \ref{atr}. Den eneste oppgaven instansen har er å lese inn rekkefølger av oktetter (\textbf{byte[]} - typen i Java) og transformere dem til \textbf{Class} - objekter. Hver en slik instans av \textbf{Class} brukes i tur til å instansiere \textbf{AbstractAggregateTransformer} - objekter.
+
 \input{code/migrator-resolveversion}
+
+Oppgaven til funksjonen \emph{getPersistedKey} er å kople dataobjektets nøkkel i en innkommende HTTP-spørring (k) med applikasjonsversjonens nøkkel (x) på formen \texttt{k + ":" + x}. Det er en privat metode som brukes av de tre migrasjonsmetodene som vises i kodeoppføringer 4.6 til 4.8. Metoden er gjort privat for klasseinstansen med vilje for å abstrahere applikasjonen bort fra databaselogikken.
+
+I Migrator - kalssen er tre metoder implementert for å migrerere aggregater som kommer fra henholdsvis en \texttt{GET} \-, en \texttt{POST} \-, og en \texttt{PUT} - forespørsel. I testapplikasjonen, som diskuteres i kapittel fem, er det DBUpgradinator som står for all håndtering av spørringskall til databaseklienten.
+
 \input{code/migrator-get}
+
+\texttt{GET}\-migrasjonsmetoden returnerer spørringsresultatet av brukerens forespørsel til applikasjonen. Selve migrasjonsprosessen blir utført ved å opprette én ny tråd der en lambda-funksjon kjøres i gjennom grensesnittet \textbf{CompletableFuture}. Effekten av bruken av dette grensesnittet er at Migrator-instansen utfører alle aggregatmigrasjoner i en annen tråd enn kjøringstråden som betjener en brukerforespørsel. og vil derfor
+
 \input{code/migrator-post}
+
 \input{code/migrator-put}
+
+De øvrige to migrasjonsfunskjonene er noe annerledes fra \emph{getAndMigrateAggregate}. De returnerer en bekreftelse som indikerer hvorvidt en skrivespørring som ble utført i klassen som implementerer \textbf{StringQueryInterface} kastet et unntak eller ei. I fall \emph{put}-kallet gjorde det returnerer migrasjonsfunksjonene \underline{false}, og \underline{true} i motsatt tilfelle.
 
 \subsection{StringQueryInterface}
 
 \input{code/stringqueryinterface}
 
-\textbf{StringQueryInterface} er en liten mengde med funksjoner utfører spørringer for Migrator-instansen. Kodeoppføring \ref{queryinter} viser hele dette grensensitt, som eksponerer to metoder: \emph{get} og \emph{put}. \emph{put} - metoden forventes å returnere en instans av \textbf{Exception}. Utvikleren forventes å skrive en separat klasse som implementerer dette grensesnittet.
-
+\textbf{StringQueryInterface} er en liten mengde med funksjoner utfører spørringer for Migrator-instansen. Kodeoppføring \ref{queryinter} viser hele dette grensensitt, som eksponerer to metoder: \emph{query} og \emph{persist}. \emph{persist} - metoden forventes å returnere en instans av \textbf{Exception}. Utvikleren forventes å skrive en separat klasse som implementerer dette grensesnittet. Som en konsekvens av denne kildekoden kan DBUpgradinators brukes i webapplikasjoner med agggregatorienterte datamodeller som bruker andre databasesystemer enn Project Voldemort til å persistere data.

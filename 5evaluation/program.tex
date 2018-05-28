@@ -5,7 +5,7 @@ Webapplikasjonen som DBUpgradinator testes på, kalles for \emph{WebshopSimulato
 
 \subsection{Simulasjon av brukerforespørsler}
 
-Frontend-delen av webapplikasjonen er skrevet i Javascript, og kjøres som et separat klientprogram. Dette skriptet kjøres i kjøretidsmiljøet NodeJS. Klientprogrammet kalles for \emph{WebAppSimulator}. Dets hovedoppgave simulerer en kontinuerlig serie med forespørsler som jevnfordeles blant applikasjonsinstansene. Programmets funksjonalitet kan i korte trekk inndeles i tre satser:
+Frontend-delen av webapplikasjonen er skrevet i Javascript, og kjøres som et separat klientprogram. Dette skriptet kjøres i kjøretidsmiljøet NodeJS. Klientprogrammet kalles for \emph{WebAppSimulator}. Dets hovedoppgave er å simulere en kontinuerlig serie med forespørsler som jevnfordeles blant applikasjonsinstansene. Programmets funksjonalitet kan i korte trekk inndeles i tre satser:
 
 \begin{enumerate}
   \item Programmet sender klyngen av tjenere en serie av POST-forespørsler, slik at nye aggregater lagres på hver av de tomme nodene i databasen. Totalt 8 GB i serialiserte JSON-objekter sendes applikasjonsinstansene og Voldemort-klientene. Samtidig holder en egen loggeprosess styr på ID-verdiene som genereres av tjenerne som tilsendes denne simulerte klienten
@@ -13,7 +13,5 @@ Frontend-delen av webapplikasjonen er skrevet i Javascript, og kjøres som et se
   \item Programmet sender en blanding av 30 prosent PUT og 70 prosent GET - forespørsler til databasenodene, i sum én HTTP-forespørsel per ID i listen som ble oppretttet i forrige steg.
 \end{enumerate}
 
-For å generere data til POST - forespørslene i steg 1 og PUT - forespørslene i steg 3, brukes en kommea\-separert seed-fil som inneholder fornavn, etternavn, postkode, post
-
-\footnote{Navn - og addresser i seed-filen stammer fra gratistjenesten Fake Name Generator, som tilbyr inntil 100 000 navn og addresser i en kommaseparert fil per bestilling. URL: \url{https://www.fakenamegenerator.com/order.php}}
+For å generere data til POST - forespørslene i steg 1 og PUT - forespørslene i steg 3, brukes en komma\-separert seed-fil som inneholder en tabell der hver rad har en strengverdi for fornavn, etternavn, telefonnummer, gateadresse, poststed, delstat, postkode, og land\footnote{Navn - og addresser i seed-filen stammer fra gratistjenesten Fake Name Generator, som tilbyr inntil 100 000 navn og addresser i en kommaseparert fil per bestilling. URL: \url{https://www.fakenamegenerator.com/order.php}}. Simulasjonsprogrammet leser inn seedfilen og grupperer hver av kolonnene i tabellen til et sett med lister, der hver er assosiert med ett av de åtte tidligere nevnte kolonnenavnene.
 

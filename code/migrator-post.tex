@@ -11,7 +11,7 @@ private static boolean logUpdateResult(String key, Exception ex) {
 
 public boolean migrateAndPostAggregate(StringQueryInterface db, String aggregateKey, String schema, String ag) {
     AbstractAggregateTransformer spec = this.transformers.get(schema);
-    String key = this.getPersistedKey(aggregateKey, schema); // This is the key used by the application
+    String key = this.getPersistedKey(aggregateKey, schema);
     if (null != spec) {
         String nextSchema = spec.getNextSchemaVersion();
         String nextKey = this.getPersistedKey(aggregateKey, nextSchema);

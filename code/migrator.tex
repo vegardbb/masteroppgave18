@@ -20,11 +20,10 @@ public class Migrator {
     public Migrator() {
         // Forenkling av kildekode for testingens skyld
         this.className = "UserAggregateTransformer";
-        // Sets up separate process which listens actively on the server socket
         new Thread( this::aggregateTransformerReceiver ).start();
     }
 
-// Se kodelisting 4.2 til og med 4.7 for resten av kildekoden til Migrator
+// Se kodelisting 4.3 til og med 4.8 for resten av kildekoden til Migrator
 // ...
 
 }
