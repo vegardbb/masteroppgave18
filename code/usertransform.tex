@@ -1,0 +1,39 @@
+\begin{lstlisting}[language=Java, label=uat, caption={Transformasjonsklasse for aggregat som holdeer data om registrerte brukere i WebShop.}]
+package app;
+
+import org.json.JSONObject;
+import vbb.dbupgradinator.AbstractAggregateTransformer;
+
+public class UserAggregateTransformer extends AbstractAggregateTransformer {
+
+    public UserAggregateTransformer(String current, String next) {
+        super(current, next);
+    }
+
+    private static String checkEmptyness(String d) {
+        if (d.isEmpty()) { return ""; }
+        return d + "\n";
+    }
+
+    private static int getCountryCode(String country) {
+        int phone = -1;
+        String checker = country.toUpperCase();
+        if (checker == "UK") { phone = 44; }
+        else if (checker == "AUS") { phone = 61; }
+        return phone;
+    }
+
+    public String transformAggregate(String val) {
+      JSONObject jo = new JSONObject(val);
+      String countryAbb = jo.getString("country");
+      String fullAddress = checkEmptyness(jo.getString("streetAddress")) + checkEmptyness(jo.getString("city")) + checkEmptyness(jo.getString("state")) + checkEmptyness(jo.getString("zipCode")) + checkEmptyness(countryAbb);
+      jo.put("address", fullAddress);
+      jo.remove("streetAddress");
+      jo.remove("city");
+      jo.remove("state");
+      jo.remove("zipCode");
+      jo.put("country", getCountryCode(countryAbb));
+      return jo.toString();
+    }
+}
+\end{lstlisting}

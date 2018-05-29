@@ -1,14 +1,4 @@
 \begin{lstlisting}[language=Java, caption={Metode for håndtering av POST-spørring i Migrator.}]
-private static boolean logUpdateResult(String key, Exception ex) {
-    if (ex == null) {
-        this.logger.info("Persisted key " + key);
-        return true;
-    } else {
-        this.logger.error("Error during persisting" + key + ": "+ ex.toString());
-        return false;
-    }
-}
-
 public boolean migrateAndPostAggregate(StringQueryInterface db, String aggregateKey, String schema, String ag) {
     AbstractAggregateTransformer spec = this.transformers.get(schema);
     String key = this.getPersistedKey(aggregateKey, schema);
@@ -25,6 +15,6 @@ public boolean migrateAndPostAggregate(StringQueryInterface db, String aggregate
         });
     }
     Exception ex = db.persist(key, ag);
-    return logUpdateResult(key, ex);
+    return (ex == null);
 }
 \end{lstlisting}

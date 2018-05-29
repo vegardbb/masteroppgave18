@@ -14,6 +14,6 @@ public boolean migrateAndPutAggregate(StringQueryInterface db, String aggregateK
         });
     }
     Exception ex = db.persist(key, ag);
-    return logUpdateResult(key, ex);
+    return (ex == null);
 }
 \end{lstlisting}
