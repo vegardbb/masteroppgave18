@@ -1,17 +1,19 @@
-\begin{lstlisting}[language=Java, caption={Metode for håndtering av PUT-spørring i Migrator.}]
+\begin{lstlisting}[language=Java, caption={Metode for håndtering av PUT-spørringer i Migrator.}]
 public boolean migrateAndPutAggregate(StringQueryInterface db, String aggregateKey, String schema, String ag) {
-    String key = this.getPersistedKey(aggregateKey, schema);
+    this.aggregateTransformerReceiver();
     AbstractAggregateTransformer spec = this.transformers.get(schema);
+    String key = this.getPersistedKey(aggregateKey, schema); // This is the key used by the application
     if (null != spec) {
         String nextSchema = spec.getNextSchemaVersion();
         String nextKey = this.getPersistedKey(aggregateKey, nextSchema);
-        CompletableFuture.supplyAsync(() -> db.persist(nextKey, spec.transformAggregate(ag))).thenAccept((fail) -> {
+        new Thread(() -> {
+            Exception fail = db.persist(nextKey, spec.transformAggregate(ag));
             if (fail == null) {
-                this.logger.info("Migrated aggregate with key " + key + " to " + nextKey);
+                log("INFO @ " + this.dateFormat.format(new Date()) + " - Migrated aggregate with key " + key + " to " + nextKey + "\n");
             } else {
-                this.logger.error("Error during migration from " + key + " to " + nextKey + ":\n"+ fail.toString());
+                log("ERROR @ " + this.dateFormat.format(new Date()) + " - Error during persisting " + nextKey + "\n" + fail.toString() + "\n");
             }
-        });
+        }).start();
     }
     Exception ex = db.persist(key, ag);
     return (ex == null);

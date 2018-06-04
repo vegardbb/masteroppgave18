@@ -2,19 +2,20 @@
 private void addTransformer(AbstractAggregateTransformer t) { this.transformers.put(t.getAppVersion(), t); }
 
 private void aggregateTransformerReceiver() {
-    AggregateTransformerLoader loader = new AggregateTransformerLoader();
-    while ( this.transformers.size() < 1 ) {
+    if ( this.transformers.size() < 1 ) {
         try {
-            Path path = Paths.get( new URI("./classes/" + this.className + ".class"));
+            Path path = Paths.get( "classes/transformer/" + this.className.replace(".","/") + ".class").toAbsolutePath();
             if (Files.exists(path)) {
                 byte[] classData = Files.readAllBytes(path);
                 Class<?> c = loader.createClass(this.className, classData);
                 Constructor cons = c.getConstructor(String.class, String.class);
                 AbstractAggregateTransformer tran = (AbstractAggregateTransformer) cons.newInstance( "x", "y" );
                 this.addTransformer(tran);
+                log("INFO @ " + this.dateFormat.format(new Date()) + " - Received aggregate transformer for schema " + tran.getAppVersion() + "\n");
             }
         } catch (Exception e) {
-            this.logger.error("An error occurred in AggregateTransformerReceiver ", e);
+            e.printStackTrace();
+            log("ERROR @ " + this.dateFormat.format(new Date()) + " " + e.toString() + "\n");
         }
     }
 }

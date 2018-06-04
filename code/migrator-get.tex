@@ -1,24 +1,26 @@
 \begin{lstlisting}[language=Java, caption={Metode for håndtering av GET-spørring i Migrator.}]
 public String getAndMigrateAggregate(StringQueryInterface db, String aggregateKey, String schema) {
+    this.aggregateTransformerReceiver();
     String key = this.getPersistedKey(aggregateKey, schema);
-    String aggregate = db.query(key); // Blokkerende DB - kall
+    String aggregate = db.query(key); // Blocking DB op
     AbstractAggregateTransformer spec = this.transformers.get(schema);
     if (null != spec) {
         String nextSchema = spec.getNextSchemaVersion();
         String nextKey = this.getPersistedKey(aggregateKey, nextSchema);
-        CompletableFuture.supplyAsync(() -> {
+        new Thread(() -> {
             if (!aggregate.equals("")) {
-                String migratedAggregate = spec.transformAggregate(aggregate);
-                Exception fail = db.persist(nextKey, migratedAggregate);
-                if (fail == null) { return true; }
-                this.logger.error("Error during migration from " + key + " to " + nextKey + ":\n"+ fail.toString());
+                String checkedAggregate = db.query(nextKey); // Blocking DB op
+                if (checkedAggregate.equals("")) {
+                    String migratedAggregate = spec.transformAggregate(aggregate);
+                    Exception fail = db.persist(nextKey, migratedAggregate); // Blocking DB op
+                    if (fail == null) {
+                        log("INFO @ " + this.dateFormat.format(new Date()) + " - Migrated aggregate with key " + key + " to " + nextKey + "\n");
+                    } else {
+                        log("ERROR @ " + this.dateFormat.format(new Date()) + " - Error during migration from " + key + " to " + nextKey + ":\n" + fail.toString() + "\n");
+                    }
+                }
             }
-            return false;
-        }).thenAccept((b) -> {
-            if (b) {
-                this.logger.info("Migrated aggregate with key " + key + " to " + nextKey);
-            }
-        });
+        }).start();
     }
     return aggregate;
 }

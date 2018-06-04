@@ -51,11 +51,9 @@ I Migrator - kalssen er tre metoder implementert for å migrerere aggregater som
 
 \texttt{GET}\-migrasjonsmetoden returnerer spørringsresultatet av brukerens forespørsel til applikasjonen. Selve migrasjonsprosessen blir utført ved å opprette én ny tråd der en lambda-funksjon kjøres i gjennom grensesnittet \textbf{CompletableFuture}. Effekten av bruken av dette grensesnittet er at Migrator-instansen utfører alle aggregatmigrasjoner i en annen tråd enn kjøringstråden som betjener en brukerforespørsel. og vil derfor
 
-\input{code/migrator-post}
-
 \input{code/migrator-put}
 
-De øvrige to migrasjonsfunskjonene er noe annerledes fra \emph{getAndMigrateAggregate}. De returnerer en bekreftelse som indikerer hvorvidt en skrivespørring som ble utført i klassen som implementerer \textbf{StringQueryInterface} kastet et unntak eller ei. I fall \emph{put}-kallet gjorde det returnerer migrasjonsfunksjonene \underline{false}, og \underline{true} i motsatt tilfelle.
+Den andre migrasjonsfunskjonen er noe annerledes fra \emph{getAndMigrateAggregate}. Den returnerer en bekreftelse som indikerer hvorvidt en skrivespørring som ble utført i klassen som implementerer \textbf{StringQueryInterface} kastet et unntak eller ei. I fall \emph{put}-kallet gjorde det returnerer migrasjonsfunksjonene \underline{false}, og \underline{true} i motsatt tilfelle.
 
 \subsection{StringQueryInterface}
 

@@ -1,0 +1,5 @@
+% Efter StringQueryInterface-kapitlet
+\subsection{Om Migrators blokkerende natur}
+
+Migrator-klassen har en egen tråd som kjører funksjonen aggregateTransformerReceiver. Denne funksjonen gjør et kall til ServerSocket.accept. Effekten av funksjonskallet er at tråden som kjører funksjonen må aktivt vente på en innkommende dataenhet, for eksempel en matrise (array, byte[] i Java) av oktetter. Ved kjøretid kan denne tråden, som skapes i Migrators konstruktør, okkupere prosessoren omtrent 95 \% av kjøretiden, noe som resulterer i en vesentlig reduksjon av systemets ytelse sammenliknet med et tilsvarende produksjonsmiljø der DBUpgradinator ikke hadde vært installert. I testapplikasjonen beskrevet i kapittel 5 involveres operativsystemet gjennom prosesshåndtøren \underline{htop}.
+
