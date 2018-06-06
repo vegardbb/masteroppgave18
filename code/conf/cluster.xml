@@ -1,36 +1,35 @@
 <cluster>
-        <name>test</name>
-        <server>
-                <id>0</id>
-                <host>167.99.84.243</host>
-                <http-port>9630</http-port>
-                <socket-port>7666</socket-port>
-                <admin-port>7665</admin-port>
-                <partitions>0, 23, 7, 22, 10, 18, 5, 25, 35, 38, 41, 44, 45, 46, 48, 53</partitions>
-        </server>
-        <server>
-                <id>1</id>
-                <host>188.166.103.205</host>
-                <http-port>9063</http-port>
-                <socket-port>7670</socket-port>
-                <admin-port>7669</admin-port>
-                <partitions>15, 20, 29, 4, 30, 24, 8, 31, 32, 55, 39, 54, 42, 50, 37, 52</partitions>
-        </server>
-        <server>
-                <id>2</id>
-                <host>206.81.31.127</host>
-                <http-port>9306</http-port>
-                <socket-port>7674</socket-port>
-                <admin-port>7673</admin-port>
-                <partitions>19, 27, 28, 26, 2, 17, 1, 11, 47, 57, 61, 36, 62, 56, 40, 63</partitions>
-        </server>
-        <server>
-                <id>3</id>
-                <host>206.81.31.128</host>
-                <http-port>9360</http-port>
-                <socket-port>7678</socket-port>
-                <admin-port>7677</admin-port>
-                <partitions>3, 6, 9, 12, 13, 14, 16, 21, 51, 59, 60, 58, 34, 49, 33, 43</partitions>
-        </server>
+    <name>test</name>
+    <server>
+        <id>0</id>
+        <host>167.99.84.243</host>
+        <http-port>9630</http-port>
+        <socket-port>7666</socket-port>
+        <admin-port>7665</admin-port>
+        <partitions>0, 23, 7, 22, 10, 18, 5, 25, 35, 38, 41, 44, 45, 46, 48, 53</partitions>
+    </server>
+    <server>
+        <id>1</id>
+        <host>188.166.103.205</host>
+        <http-port>9063</http-port>
+        <socket-port>7670</socket-port>
+        <admin-port>7669</admin-port>
+        <partitions>15, 20, 29, 4, 30, 24, 8, 31, 32, 55, 39, 54, 42, 50, 37, 52</partitions>
+    </server>
+    <server>
+        <id>2</id>
+        <host>206.81.31.127</host>
+        <http-port>9306</http-port>
+        <socket-port>7674</socket-port>
+        <admin-port>7673</admin-port>
+        <partitions>19, 27, 28, 26, 2, 17, 1, 11, 47, 57, 61, 36, 62, 56, 40, 63</partitions>
+    </server>
+    <server>
+        <id>3</id>
+        <host>206.81.31.128</host>
+        <http-port>9360</http-port>
+        <socket-port>7678</socket-port>
+        <admin-port>7677</admin-port>
+        <partitions>3, 6, 9, 12, 13, 14, 16, 21, 51, 59, 60, 58, 34, 49, 33, 43</partitions>
+    </server>
 </cluster>
-
