@@ -123,7 +123,7 @@ Aktivitetsdiagrammet i figur \ref{fig9} beskriver webapplikasjonens oppførsel n
 
 Forretningsordenen for en skriveforespørsel er omvendt av den vi så for leseforespørsler i figurene \ref{fig7} og \ref{fig8}. Her blir DBUpgradinator kontaktet før databasespørringen sendes. Årsaken er at aggregatet ved PUT eller POST er gitt av klienten, sammen med både dets påtenkte skjema og dets statiske nøkkel. Igjen vil DBUpgradinator kontrollere skjemaversjonen, og asynkront migrere aggregatet ved å opprette en ny streng basert på det, hvis skjemanøkkelen som kommer fra forespørselen ikke er den nyeste. Etter å ha utført migrasjonen av det oppdaterte aggregatet og sendt resultatet til databaseklienten i form av et put-funksjonskall, hopper programmet tilbake inn i applikasjonslogikken, og sender et nytt put-kall til samme databaseklient.
 
-Dette databasekallet gjøres for å oppdatere det objektet som i prinsippet er det samme aggregatet, men for det gamle skjemaet. Årsaken til at DBUpgradinator oppdaterer aggregatet for det nye skjemaet, samtidig som for det gamle, er at ved rullerende oppgradering av en klynge applikasjonstjenere har man en miks av tjenere som opererer med den gamle versjonen av tjenerprogrammet og tjenere som kjører den nye. Mengden av nye tjenerversjoner øker gradvis på bekostning av mengden av de gamle, naturlig nok, ved en rullerende applikasjonsoppdatering.
+Dette databasekallet gjøres for å oppdatere det objektet som i prinsippet er det samme aggregatet, men for det gamle skjemaet. Årsaken til at DBUpgradinator oppdaterer aggregatet for det nye skjemaet, samtidig som for det gamle, er at ved rullerende oppgradering av en klynge applikasjonstjenere har man en miks av tjenere som opererer med den gamle versjonen av tjenerprogrammet og tjenere som kjører den nye. Mengden av nye tjenerversjoner øker gradvis på bekostning av mengden av de gamle ved en rullerende applikasjonsoppdatering.
 
 Når applikasjonen mottar en bekreftelse fra et put-kall opprettes en HTTP-respons som informerer om hvorvidt skriveoperasjonen lyktes eller ikke. Responsen sendes tilbake til applikasjonsklienten over TCP/IP - forbindelsen.
 
@@ -137,14 +137,16 @@ Når applikasjonen mottar en bekreftelse fra et put-kall opprettes en HTTP-respo
   \label{fig10}
 \end{figure}
 
-De fire boksene i figur \ref{fig10} refererer til fire forskjellige datasentre. Hver enkelt av de fire applikasjonsnodene gjestes av skyinfrastrukturleverandøren DigitalOcean, og alle er spredd utover fire forskjellige datasentre i London, Amsterdam (to av datasentra er lokaliserte her), og Frankfurt am Main.
+Det fysiske perspektivet beskriver testmiljøet DBUpgradinator skal testes i. De fire boksene i figur \ref{fig10} refererer til fire forskjellige datasentre. Hver enkelt av de fire applikasjonsnodene gjestes av skyinfrastrukturleverandøren DigitalOcean, og alle er spredd utover tre forskjellige datasentre i London (LON1), Amsterdam (AMS3), og Frankfurt am Main (FRA1).
 
-I hvert datasenter betjenes én virtuell maskin, eller \underline{droplet}, som DigitalOcean kaller dem. Selve maskinvaren blir beskrevet i detalj i delkapittel 5.3. Hver av de virtuelle maskinene kjører to separate programmer (''kjøretidsmiljø'') som lytter på én nettverksport hver. Disse programmene er:
+I hvert datasenter betjenes én virtuell maskin, eller \underline{droplet}, som DigitalOcean kaller dem. Hver av de virtuelle maskinene kjører to separate programmer (''kjøretidsmiljø'') som lytter på én nettverksport hver. Disse programmene er:
 
 \begin{enumerate}
   \item Webapplikasjonen, som i \ref{fig10} benytter artefaktene WebShopSimulator.jar og DBUpgradinator.jar til å kjøre selve appliaksjonstjeneren; samtidig benytter prosessen voldemort.jar - filen for å instansiere en klient som replikerer hvert aggregat til tre databasenoder
   \item Databasenoden, som lagrer og henter data på kommando fra Voldemort-klientprogrammene
 \end{enumerate}
 
-Figur \ref{fig10} viser også at hver kjørende instans av Voldemort-klienten fra applikasjonstjenerprogrammet har én replikeringsassosiasjon med hver av de tre databasenodene stasjonert på de andre virtuelle maskinene. Det er ikke nødvendigvis slik hash-strategien er konfigurert i databaseinstansen, figuren er ment å illustrere at klientprogrammet til Voldemort er del av applikasjonsprosessen, og det er den som utførerer spørringer mot de enkelte databasenoder for å persistere og lese repliaker.
+Figur \ref{fig10} viser også at hver kjørende instans av Voldemort-klienten fra applikasjonstjenerprogrammet har én replikeringsassosiasjon (kalt ''spørringskoordinator'') med hver av de tre databasenodene stasjonert på de andre virtuelle maskinene. Det er ikke nødvendigvis slik replikeringsstrategien er konfigurert i databaseinstansen, figuren er ment å illustrere at klientprogrammet til Voldemort er del av applikasjonsprosessen, og at det er den som utførerer spørringer mot de enkelte databasenoder for å persistere og lese replikerte aggregater.
+
+Hver av de virtuelle maskinene modellert i figur \ref{fig10} kjører samme operativsystem, versjon 8.10 av Debian GNU/Linux. Alle har hver én gigabyte med arbeidsminne. Hver av maskinene disponerer et eget SSD-lager med en kapasitet på 25 GB, og én sepaprat, virtuell prosesseringsenhet.
 

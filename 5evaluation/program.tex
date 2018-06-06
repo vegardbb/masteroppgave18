@@ -14,5 +14,24 @@ Et klientprogram, skrevet i Javscript, genererer og sender forespørsler til det
 
 For å generere data til POST - forespørslene i steg 1 og PUT - forespørslene i steg 3, brukes en komma\-separert seed-fil som inneholder en tabell der hver rad har en strengverdi for fornavn, etternavn, telefonnummer, gateadresse, poststed, delstat, postkode, og land\footnote{Navn - og addresser i seed-filen stammer fra gratistjenesten Fake Name Generator, som tilbyr inntil 100 000 navn og addresser i en kommaseparert fil per bestilling. URL: \url{https://www.fakenamegenerator.com/order.php}}. Simulasjonsprogrammet leser inn seedfilen og grupperer hver av kolonnene i tabellen til et sett med lister, der hver liste er assosiert med ett av de åtte tidligere nevnte kolonnenavnene.
 
-Ved hjelp av pakken ''node-fetch'' genererer skriptet HTTP-forespørsler asynkront, det vil si at det ikke venter på svar fra applikasjonstjenerne for hver tilsendt forespørsel før den neste sendes. En funksjon i skriptet, kalt \texttt{chooseRandom}, returnerer et pseudotilfeldig valgt element fra et liste-parameter. Denne funksjonen brukes til å velge en tilfeldig applikasjonstjener som skal motta en forespørsel, fra en liste av URL-er. Den samme funksjonen kalles på for å generere hvert attributt i et aggregat som enten skal postes eller oppdateres i databasen. Prosedyren for generering av PUT - forespørsler skiller seg ut fra generering av POST-forespørsler og med at PUT-endepunktet til WebShopSimulator sitt API krever et \emph{id}-parameter.
+Ved hjelp av pakken ''node-fetch'' genererer skriptet HTTP-forespørsler asynkront, det vil si at det ikke venter på svar fra applikasjonstjenerne for hver tilsendt forespørsel før den neste sendes. En funksjon i skriptet, kalt \texttt{chooseRandom}, returnerer et pseudotilfeldig valgt element fra et liste-parameter. Denne funksjonen brukes til å velge en tilfeldig applikasjonstjener som skal motta en forespørsel, fra en liste av URL-er. Den samme funksjonen kalles på for å generere hvert attributt i et aggregat som enten skal postes eller oppdateres i databasen. Prosedyren for generering av PUT - forespørsler skiller seg ut fra generering av POST-forespørsler og med at PUT-endepunktet til WebShopSimulator sitt ReST-API krever et \emph{id}-parameter.
+
+Skriptet bruker et separat loggeobjekt, som instansieres ved hjelp av pakken Winston\footnote{Publisert på npm. URL: \url{https://www.npmjs.com/package/winston}}. Loggeobjektet logger responsen applikasjonstjenerne sender tilbake for hver genererte forespørsel.
+
+\subsection{Programvare på tjenerne}
+
+% Om webapplikasjonen, dets kildekode, avhengigheter og bygging
+Kildekoden til WebShopSimulator er åpent tilgjengelig på DBUpgradinator sitt GitHub - repositorium: \url{https://github.com/vegardbb/DBUpgradinator/tree/master/demo/WebshopSimulator}. Programmet er et Java - prosjekt som bruker DBUpgradinator til å oppgradere sin datamodell. Programmet er en webapplikasjon som eksponerer et ReST-API til mange nettleserklienter. Klassediagrammet i figur \ref{classfig} viser den statiske relasjonen mellom kildekoden til DBUpgradinator og kildekoden til WebShopSimulator.
+
+% Figur 11
+\begin{figure}[hbtp]
+  \centering
+  \includegraphics[scale=0.4]{fig/class-diagram.png}
+  \caption{Klassediagram av WebShopSimulator. Den gule, stiplete linjen markerer et skille mellom klassene til DBUpgradinator og klassene til WebShopSimulator.}
+  \label{classfig}
+\end{figure}
+
+For å realisere ReST-APIet til den typiske webapplikasjon DBUpgradinator er ment å operere på (se også figur \ref{fig5}), ble Java-pakken Spark\footnote{Må ikke forveksles med Apache Spark, som er et distribuert dataprosesseringsverktøy ment for stordata-systemer.} benyttet. Spark er et mikro\-rammeverk laget for at utviklere lettere og raskere kan skrive en webapplikasjon sentrert rundt mikrotjeneste\-mønsteret.
+
+I kildekoden til WebShopSimulator er det også skrevet en separat klasse, som utifra en instans av VoldemortClientConfig instansierer et StoreClient - objekt. Dette objektet koordinerer og utfører spørringer over TCP - forbindelser med hver av databasenodene i Voldemort-instansen som kjører i testmiljøet. Selve klassen i WebShopSimulator implementerer grensesnittet \textt{vbb.dbupgradinator.StringQueryInterface}, som er listet opp i kodeoppføring \ref{queryinter}.
 
