@@ -1,0 +1,42 @@
+\section{Testresultater} \label{testing}
+
+\subsection{Test 1: Oppretting av aggregater, uten migrasjon}
+
+\input{tables/test1frontend}
+\input{tables/test1backend}
+
+\begin{figure}[hbtp]
+  \begin{turn}{-90}
+    \input{plots/plot1}
+   \end{turn}{-90}
+  \caption{Graf som plotter grupperte tidspunkt for persistering av data.}
+  \label{plott1}
+\end{figure}
+
+\subsection{Test 2: Lesing, oppdatering, og oppretting av aggregater, med migrasjon}
+
+\input{tables/test2frontend}
+\input{tables/test2backend}
+
+\begin{figure}[hbtp]
+  \begin{turn}{-90}
+    \input{plots/plot2}
+   \end{turn}{-90}
+  \caption{Graf som plotter grupperte tidspunkt for persistering av data (lesinger ekskludert).}
+  \label{plott2}
+\end{figure}
+
+\subsection{Test 3: Oppdatering av aggregater, med migrasjon}
+
+\input{tables/test3frontend}
+\input{tables/test3backend}
+
+\begin{figure}[hbtp]
+  \begin{turn}{-90}
+    \input{plots/plot3}
+   \end{turn}{-90}
+  \caption{Graf som plotter grupperte tidspunkt for persistering av oppdaterte data.}
+  \label{plott3}
+\end{figure}
+
+

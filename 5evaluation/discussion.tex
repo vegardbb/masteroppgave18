@@ -3,3 +3,8 @@
 
 Migrator-klassen har en egen tråd som kjører funksjonen aggregateTransformerReceiver. Denne funksjonen gjør et kall til ServerSocket.accept. Effekten av funksjonskallet er at tråden som kjører funksjonen må aktivt vente på en innkommende dataenhet, for eksempel en matrise (array, byte[] i Java) av oktetter. Ved kjøretid kan denne tråden, som skapes i Migrators konstruktør, okkupere prosessoren omtrent 95 \% av kjøretiden, noe som resulterer i en vesentlig reduksjon av systemets ytelse sammenliknet med et tilsvarende produksjonsmiljø der DBUpgradinator ikke hadde vært installert. I testapplikasjonen beskrevet i kapittel 5 involveres operativsystemet gjennom prosesshåndtøren \underline{htop}.
 
+
+\subsection{Erfaringer under testing}
+
+Det første hinderet for testprosessen oppsto før forespørselssimulatoren i det hele tatt ble startet opp på den norske klienten. Etter å ha kompilert kildekoden til WebShop sammen med dets avhengige pakker, deriblant DBUpgradinator, Voldemort og Spark, ble jar-filen kopiert til hver av de fire dødseterne, avery, black, crabbe og dolohov.
+
