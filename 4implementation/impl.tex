@@ -59,4 +59,8 @@ Den andre migrasjonsfunskjonen er noe annerledes fra \emph{getAndMigrateAggregat
 
 \input{code/stringqueryinterface}
 
-\textbf{StringQueryInterface} er en liten mengde med funksjoner utfører spørringer for Migrator-instansen. Kodeoppføring \ref{queryinter} viser hele dette grensensitt, som eksponerer to metoder: \emph{query} og \emph{persist}. \emph{persist} - metoden forventes å returnere en instans av \textbf{Exception}. Utvikleren forventes å skrive en separat klasse som implementerer dette grensesnittet. Som en konsekvens av denne kildekoden kan DBUpgradinators brukes i webapplikasjoner med agggregatorienterte datamodeller som bruker andre databasesystemer enn Project Voldemort til å persistere data.
+\textbf{StringQueryInterface} er en liten mengde med funksjoner utfører spørringer for Migrator-instansen. Kodeoppføring \ref{queryinter} viser hele dette grensensitt, som eksponerer to metoder: \emph{query} og \emph{persist}. \emph{persist} - metoden forventes å returnere en instans av \textbf{Exception}. Grunnen til dette er at \emph{persist} skal kalle \emph{put}-metoden til en instans av \textbf{StoreClient}. I Voldemort sitt tilfelle kan \emph{put} kaste et \textbf{ObsoleteVersionException} - unntak, som må fanges opp. 
+
+For at \textbf{Migrator} - instansen skal kunne registrere at spørringen feilet, må den motta et unntak som en retur\-verdi, som kommer til å være lik \texttt{null} hver gang spørringen ble fullbyrdet. Utvikleren forventes å skrive en separat klasse som implementerer dette grensesnittet. Det er denne klassen som må rydde opp i eventuelle  flettekonflikter, det vil si hver gang \emph{get}-kallet returnerer en liste av aggregater i stedet for bare ett.
+
+Som en konsekvens av denne kildekoden kan DBUpgradinators brukes i webapplikasjoner med agggregatorienterte datamodeller som bruker andre nøkkelverdi\-lagre enn Project Voldemort til å persistere data.
