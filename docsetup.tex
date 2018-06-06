@@ -8,9 +8,10 @@
 \usepackage{amsmath}     % Matte
 \usepackage{color}
 \usepackage{listings}
+\usepackage{rotating}    % Sideveis figurer
 \usepackage{tikz}        % Graf
 \usepackage{pgfplots}
-
+\pgfplotsset{compat=1.16}
 \definecolor{dkgreen}{rgb}{0,0.6,0}
 \definecolor{gray}{rgb}{0.5,0.5,0.5}
 \definecolor{mauve}{rgb}{0.58,0,0.82}
@@ -32,10 +33,20 @@
   tabsize=4
 }
 
-\lstset{
-  language=XML,
-  morekeywords={encoding,
-    cluster,name,server,id,host,http-port,socket-port,admin-port,rest-port,partitions}
+\lstdefinestyle{xml}{
+  escapechar=@,
+  belowcaptionskip=1\baselineskip,
+  breaklines=true,
+  frame=single,
+  language=C,
+  captionpos=t,
+  showstringspaces=false,
+  basicstyle=\footnotesize\ttfamily,
+  keywordstyle=\bfseries\color{green!40!black},
+  commentstyle=\itshape\color{purple!40!black},
+  identifierstyle=\color{blue},
+  stringstyle=\color{orange},
+  tabsize=4
 }
 
 \usepackage[Lenny]{fncychap}
@@ -48,7 +59,7 @@
     linkcolor=black,%
     urlcolor=black
 }
-\usepackage[font=small,labelfont=bf]{caption}
+\usepackage[tableposition=top,font=small,labelfont=bf]{caption}
 \usepackage{fancyhdr}
 \usepackage{times}
 %\usepackage[intoc]{nomencl}
