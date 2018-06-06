@@ -1,6 +1,6 @@
 % Tabell som viser statistikk for applikasjonsklyngen i test 1
 \begin{tikzpicture}
-  \begin{axis}[xlabel={tid/s},ylabel={Persisterte aggregater},height=.91\textheight,width=.91\textwidth,anchor=origin,rotate around={90:(current axis.origin)},]
+  \begin{axis}[xlabel={tid/s},ylabel={Persisterte aggregater},height=.91\textwidth,width=.91\textheight]
     \addplot[densely dotted] table[x=t,y=f,col sep=comma]{plots/get-put-post.txt};
   \end{axis}
 \end{tikzpicture}
