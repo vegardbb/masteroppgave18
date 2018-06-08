@@ -1,4 +1,4 @@
-\begin{lstlisting}[language=Java, caption={Metode for håndtering av PUT-spørringer i Migrator.}]
+\begin{lstlisting}[language=Java, label={mput}, caption={Metode for håndtering av PUT-spørringer i Migrator.}]
 public boolean migrateAndPutAggregate(StringQueryInterface db, String aggregateKey, String schema, String ag) {
     this.aggregateTransformerReceiver();
     AbstractAggregateTransformer spec = this.transformers.get(schema);

@@ -1,4 +1,4 @@
-\begin{lstlisting}[language=Java, caption={Metode for håndtering av GET-spørring i Migrator.}]
+\begin{lstlisting}[language=Java, label={mget}, caption={Metode for håndtering av GET-spørring i Migrator.}]
 public String getAndMigrateAggregate(StringQueryInterface db, String aggregateKey, String schema) {
     this.aggregateTransformerReceiver();
     String key = this.getPersistedKey(aggregateKey, schema);
