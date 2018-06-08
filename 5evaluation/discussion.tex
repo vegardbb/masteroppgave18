@@ -1,10 +1,34 @@
-% Efter StringQueryInterface-kapitlet
-\subsection{Om Migrators blokkerende natur}
+\subsection*{Om Migrators blokkerende natur}
 
-Migrator-klassen har en egen tråd som kjører funksjonen aggregateTransformerReceiver. Denne funksjonen gjør et kall til ServerSocket.accept. Effekten av funksjonskallet er at tråden som kjører funksjonen må aktivt vente på en innkommende dataenhet, for eksempel en matrise (array, byte[] i Java) av oktetter. Ved kjøretid kan denne tråden, som skapes i Migrators konstruktør, okkupere prosessoren omtrent 95 \% av kjøretiden, noe som resulterer i en vesentlig reduksjon av systemets ytelse sammenliknet med et tilsvarende produksjonsmiljø der DBUpgradinator ikke hadde vært installert. I testapplikasjonen beskrevet i kapittel 5 involveres operativsystemet gjennom prosesshåndtøren \underline{htop}.
+Migrator-klassen, beskrevet i kodeoppføring x, hadde opprinnelig en egen tråd som skulle konstant kjøre en while-løkke i funksjonen \emph{aggregateTransformerReceiver}. Denne funksjonen gjør et kall til metoden \emph{accept} i \textbf{ServerSocket}-klassen. Effekten av dette metodekallet er at tråden som kjører funksjonen må aktivt vente på en innkommende dataenhet, for eksempel en matrise (byte[] i Java) av oktetter. Ved kjøretid kan denne tråden, som skapes i Migrators konstruktør, okkupere prosessoren store deler av kjøretiden. Dette resulterer i en vesentlig reduksjon av systemets ytelse sammenliknet med et tilsvarende produksjonsmiljø der DBUpgradinator ikke hadde vært installert.
 
 
-\subsection{Erfaringer under testing}
 
-Det første hinderet for testprosessen oppsto før forespørselssimulatoren i det hele tatt ble startet opp på den norske klienten. Etter å ha kompilert kildekoden til WebShop sammen med dets avhengige pakker, deriblant DBUpgradinator, Voldemort og Spark, ble jar-filen kopiert til hver av de fire dødseterne, avery, black, crabbe og dolohov.
+\section*{Implementere DBUpgradinator som del av Voldemort}
+
+Et meget viktig designvalg er å bestemme hvilken del av den logiske arkitekturen migrasjon skal forekomme. I denne oppgaven har ansvaret for levende migrasjon av aggregater fra gamle skjema tilfalt applikasjonslaget, og ikke databasenivået. 
+
+
+\subsection*{Erfaringer under testing}
+
+Det første hinderet for testprosessen oppsto før forespørselssimulatoren i det hele tatt ble startet opp på den norske klienten. Etter å ha kompilert kildekoden til WebShop sammen med dets avhengige pakker, deriblant DBUpgradinator, Voldemort og Spark, ble jar-filen kopiert til hver av de fire tjenerne i applikasjonsklyngen.
+
+
+
+\emph{aggregateTransformerReceiver}, som vises i kodeoppføring \ref{atr} kjøres i en separat tråd idet konstruktøren til Migrator kalles, og er følgelig ikke del av en ordinær spørrings livsløp. Kodeobjektet er en funksjon som mottar AggregateTransformer-objekter og instansierer dem som instanser av den abstrakte superklassen \textbf{AbstractAggregateTransformer}. og holder rede på dem i versjonsrekkefølge i en privat liste. Funksjonen har også ansvaret for å påkalle transformasjonsmetoden til hvert objekt.
+
+Funksjonen kalles i en metodereferanse som sendes som et argument inn i \textbf{Thread} - konstruktøren i kroppen til konstruktøren til Migrator. En metodereferanse er et forkortet lambdauttrykk, som kompilatoren i Java 8 forstår og klarer å inferere både antall argumenter og typen til hvert argument.
+
+%%%%%%%%%
+%Momenter:
+%  - Erfaring under testing (påbegynt ovenfor)
+%  - Øvrig testing som ikke ble loggført (påbegynt ovenfor)
+%    - Kjøring av aggregateTransformerReceiver i en egen tråd
+%    - CompletableFuture og dets effekt på test2
+%  - Gjennomstrømmingen i test1 kontra test3 kontra KVolve
+%  - Kvalitativ sammenlikning med Kvolve
+%  - Evaluering av kravoppfyllelse
+%  - Evaluering av måloppnåelse
+%  - Konfigurasjon av databasen
+%*
 

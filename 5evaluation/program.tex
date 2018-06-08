@@ -26,7 +26,7 @@ Kildekoden til WebShopSimulator er åpent tilgjengelig på DBUpgradinator sitt G
 % Figur 11
 \begin{figure}[hbtp]
   \centering
-  \includegraphics[scale=0.55]{fig/class-diagram.png}
+  \includegraphics[scale=0.59]{fig/class-diagram.png}
   \caption{Klassediagram av WebShopSimulator. Den gule, stiplete linjen markerer et skille mellom klassene til DBUpgradinator og klassene til WebShopSimulator.}
   \label{classfig}
 \end{figure}
@@ -39,9 +39,11 @@ For å realisere ReST-APIet til den typiske webapplikasjon DBUpgradinator er men
   \item[POST /api?schema=x] Applikasjonen oppretter et nytt aggregat (ut i fra forespørselens ''body'' - variabel) i databasen som tilhører skjemaversjon \emph{x}
 \end{description}
 
-I kildekoden til WebShopSimulator er det også skrevet en separat klasse, som utifra en instans av VoldemortClientConfig instansierer et StoreClient - objekt. Dette objektet koordinerer og utfører spørringer over TCP - forbindelser med hver av databasenodene i Voldemort-instansen som kjører i testmiljøet. Selve klassen i WebShopSimulator implementerer grensesnittet \texttt{vbb.dbupgradinator.StringQueryInterface}, som er listet opp i kodeoppføring \ref{queryinter}.
+I kildekoden til WebShopSimulator er det også skrevet en separat klasse, som utifra en instans av VoldemortClientConfig instansierer et StoreClient - objekt. Dette objektet koordinerer og utfører spørringer over TCP - forbindelser med hver av databasenodene i Voldemort-instansen som kjører i testmiljøet. Selve klassen i WebShopSimulator implementerer grensesnittet \texttt{StringQueryInterface}, som er listet opp i kodeoppføring \ref{queryinter}.
 
-Artefaktene benevnt i \ref{fig10} som ''DBUpgradinator.jar'' og ''WebShopSim.jar'' ble bygget i utviklingsmiljøet IntelliJ IDEA. I dette programmet kan man definere underprosjekter, eller ''moduler'', innen et Java-prosjekt. Enhver modul har sin egen katalog for å ha kildekode i. Avhengigheter, det vil si artifakter som inneholder klasser som importeres inn i kildekoden, registreres i en modul. Før en \texttt{.jar} - fil kan kompileres og bygges må en artefakt defineres. Intellij knytter hver artifakt til en modul. Slik kan Intellij legge ved de \texttt{.jar} - filene artifakten trenger for å kunne fungere ordentlig.
+Artefaktene benevnt i \ref{fig10} som ''DBUpgradinator.jar'' og ''WebShopSim.jar'' ble bygget i utviklingsmiljøet IntelliJ IDEA. I dette programmet kan man definere underprosjekter, eller ''moduler'', innen et Java-prosjekt. Enhver modul har sin egen katalog for å ha kildekode i. Avhengigheter, det vil si artifakter som inneholder klasser som importeres inn i kildekoden, registreres i en modul. Før en \texttt{.jar} - fil kan kompileres og bygges må en artefakt defineres. IntelliJ knytter hver artifakt til en modul. Slik kan Intellij legge ved de \texttt{.jar} - filene artifakten trenger for å kunne fungere ordentlig.
+
+DBUpgradinator er utstyrt med en enkel, hjemmelaget loggefunksjon. Denne loggeren påkalles hver gang et aggregat har blitt migrert til et nytt skjema, og hver gang et aggregat er blitt bekreftet skrevet til disk av databasenodene. Loggfunksjonen skriver et klokkeslett på formen \texttt{åååå-mm-dd hh:mm:ss}. Ved hjelp av loggingen kan man teste hvordan den levende datamigrasjonen påvirker en applikasjons evne til å betjene forespørsler til dens klienter.
 
 \subsection{Konfigurasjon av Voldemort-instans}
 
@@ -49,16 +51,32 @@ Databaseklyngens modus operandi reguleres av tre forskjellige konfigurasjonsfile
 
 \lstinputlisting[style=xml, label=cluster, caption={cluster.xml - filen definerer de fire nodene i databaseklyngen til testmiljøet.}]{code/conf/cluster.xml}
 
-Klyngekonfigurasjonen holder på variabler som er konsistent like for samtlige noder (det være seg kjørende database\-tjener\-prosesser) i Voldemort-instansen. Eksempler på slik informasjon inkluderer nodenes vertsnavn, id, og tilkoplingsport for TCP-forbindelser med \textbf{StoreClient} - instanser.  \citep{kreps2009}. I \texttt{cluster}-konfigurasjonen defineres også alle partisjonene som er spredd utover nodene. Fordelingen av disse partisjonene påvirker fordelingen av nøkler i den konsistente hashringen.
+Klyngekonfigurasjonen holder på variabler som er konsistent like for samtlige noder (det være seg kjørende database\-tjener\-prosesser) i Voldemort-instansen. Eksempler på slik informasjon inkluderer nodenes vertsnavn, id, og tilkoplingsport for TCP-forbindelser med \textbf{StoreClient} - instanser \citep{kreps2009}. I \texttt{cluster}-konfigurasjonen defineres også alle partisjonene som er spredd utover nodene.
 
-\lstinputlisting[language=python, label=serverproperties, caption={server.properties er filen som bestemmer oppførselen til den enkelte databasenode i databaseklyngen.}]{code/conf/server.properties}
+Fordelingen av disse partisjonene påvirker fordelingen av nøkler i den konsistente hashringen. Mens en Voldemort-instans er oppe kan disse partisjonene omfordeles fritt, men de kan i sum aldri bli færre eller flere. De øvrige konfigurasjonsvariablene må være konstante gjennom hele databaseinstansens livsløp, og de må være like for alle nodene i klyngen \citep{kreps2009}.
 
-\ldots
-\lstinputlisting[style=xml, label=test, caption={En STORE - fil som bestemmer hvordan data lagres i nøkkelverdi-lageret.}]{code/conf/test.xml}
+Hvis produksjonsmiljøet opererer med flere databasetjenere på samme datasenter, og samtidig kjøres på tvers av flere datasentre, går det an å definere soner innenfor klyngen. Dens funksjonelle verdi er å unngå at to replikaer for samme nøkkel havner på samme datasenter. I tilfellet med testmiljøet til WebShop hadde det vært hensiktsmessig å inndele klyngen i to soner: Nodene som er lokalisert i Frankfurt og nodene som er lokalisert utenfor Frankfurt. Dette er imidlertid ikke gjort for databaseklyngen WebShopSimulator opererer på.
 
-\texttt{test} - filen er konfigurasjonsfilen til nøkkelverdi-lageret hvis identifiserte navn er ''test''. Denne filen dirigerer ytelsesparametre for ett enkelt lager. I prinsippet kan en databaseklynge ha flere lagre, og det går ikke an å kjøre spørringer på tvers av dem.
+\lstinputlisting[language=python, label=serverproperties, caption={\texttt{server.properties} er filen som bestemmer oppførselen til den enkelte databasenode i databaseklyngen.}]{code/conf/server.properties}
+
+En minimal tjenerkonfigurasjon inneholder én linje, og det er den som definerer id-en til noden. Dette er påkrevd, slik at noden vet hvilken nodekonfigurasjon fra \texttt{cluster.xml} det er som skal leses. Som vist i kodeoppføring \ref{serverproperties}, definerer tjener\-konfigurasjons\-filen kjøretidsegenskapene til persisterings\-motoren BDB Java, som alle de fire nodene tar ibruk for å lagre data.
+
+\lstinputlisting[style=xml, label=test, caption={En STORE - fil som bestemmer hvordan data lagres i databasen.}]{code/conf/test.xml}
+
+Quorum-konfigurasjonen bestemmes ikke i \texttt{cluster.xml}, da det noen ganger kan være ønskelig at noen aggregater skal kunne gjøres mer tilgjengelige enn andre. Quroum-parameterne \(R\), \(W\), og \(N\) defineres for hvert nøkkelverdi\-lager i klyngen, altså defineres de i filen \texttt{test}, henholdsvis med nøkkelordene \emph{required-reads}, \emph{required-writes}, og \emph{replication-factor}. I konfigurasjonen beskrivet av oppføring \ref{test} kan man se at databasen fører en ''strict quorum'' - policy, jamfør kapittel \ref{strictquorum}.
+
+\texttt{test} - filen er konfigurasjonsfilen til nøkkelverdi-lageret hvis identifiserte navn er ''test''.  I prinsippet kan en databaseklynge ha flere databaseinstanser, men det går ikke an å kjøre spørringer på tvers av dem. Filen dikterer hvilken strategi nodene skal følge når de leverer antydede replika\-aggregat til sine midlertidige addresser.
+
+Kodeoppføring \ref{test} definerer også serialiseringsmetoden nodene benytter når de lagrer aggregater mottat fra en spørringskoordinator. I dette tilfelle heter denne metoden ''string'', det vil si at oktettene noder mottar behandles som UTF8-kodet tekst.
 
 \subsection{Testmiljø}
 
+% Kap. 5.2.4
+Deployment-diagrammet fra figur \ref{fig10} beskriver testmiljøet DBUpgradinator skal testes i. De fire boksene refererer til fire forskjellige datasentre. Hver enkelt av de fire applikasjonsnodene gjestes av skyinfrastrukturleverandøren DigitalOcean, og alle er spredd utover tre forskjellige datasentre i London (LON1), Amsterdam (AMS3), og Frankfurt am Main (FRA1). I hvert datasenter betjenes én virtuell maskin, eller \underline{droplet}, som DigitalOcean kaller dem.
+
+Hver av de virtuelle maskinene modellert i figur \ref{fig10} kjører samme operativsystem, versjon 8.10 av Debian GNU/Linux. Alle har hver én gigabyte med arbeidsminne. Hver av maskinene disponerer et eget SSD-lager med en kapasitet på 25 GB, og én sepaprat, virtuell prosesseringsenhet.
+
 \input{tables/droplets}
+
+I tabell \ref{droplets} oppgis vertsnavnene og IPv4 - addressene til hver av de virtuelle maskinene, samt hvilket datasenter hver av de er opprettet i. Assosiasjonen mellom navnet til vertsmaskinene og datasentra er også gjengitt i figur \ref{fig10}.
 
