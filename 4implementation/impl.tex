@@ -33,23 +33,21 @@ I likhet med Kvolve kan ikke en instans av Migrator slåes av, den er alltid på
 
 \input{code/migrator-aggregatetransformerreceiver}
 
-\emph{aggregateTransformerReceiver}, som vises i kodeoppføring \ref{atr} kjøres i en separat tråd idet konstruktøren til Migrator kalles, og er følgelig ikke del av en ordinær spørrings livsløp. Kodeobjektet er en funksjon som mottar AggregateTransformer-objekter og instansierer dem som instanser av den abstrakte superklassen \textbf{AbstractAggregateTransformer}. og holder rede på dem i versjonsrekkefølge i en privat liste. Funksjonen har også ansvaret for å påkalle transformasjonsmetoden til hvert objekt.
-
-Funksjonen kalles i en metodereferanse som sendes som et argument inn i \textbf{Thread} - konstruktøren i kroppen til konstruktøren til Migrator. En metodereferanse er et forkortet lambdauttrykk, som kompilatoren i Java 8 forstår og klarer å inferere både antall argumenter og typen til hvert argument.
+Funksjonen \emph{aggregateTransformerReceiver} vises i kodeoppføring \ref{atr}. Den påkalles hver gang en av migrasjonsfunksjonen blir kalt av applikasjonen (se oppføringer \ref{mget} og \ref{mput}), og én gang i konstruktøren til \textbf{Migrator}. Metoden gjør et I/O-kall til disk for å kontrollere om en ny \texttt{.class} - fil (med et spesifikt navn) er ankommet den oppgitte katalogen.
 
 \input{code/migrator-loader}
 
-I kodeoppføring \ref{load} kan man lese kildekoden til en indre klasse, \textbf{AggregateTransformerLoader}, som er en spesialisering av \textbf{ClassLoader}. En indre klasse er en ikke-statisk klasse, deklarert innen en annen klasse. Denne klassen instansieres på én spesifikk linje i Migrator-klassen, nemlig linje 4 i kodeoppføring \ref{atr}. Den eneste oppgaven instansen har er å lese inn rekkefølger av oktetter (\textbf{byte[]} - typen i Java) og transformere dem til \textbf{Class} - objekter. Hver en slik instans av \textbf{Class} brukes i tur til å instansiere \textbf{AbstractAggregateTransformer} - objekter.
+I kodeoppføring \ref{load} kan man lese kildekoden til en indre klasse, \textbf{AggregateTransformerLoader}, som er en spesialisering av \textbf{ClassLoader}. En indre klasse er en ikke-statisk klasse, deklarert innen en annen klasse. Hver \textbf{Migrator} - instans har en egen instans av denne klassen. Den eneste oppgaven instansen har er å lese inn rekkefølger av oktetter (\textbf{byte[]} - typen i Java) og transformere dem til \textbf{Class} - objekter. Hver en slik instans av \textbf{Class} brukes i tur til å instansiere \textbf{AbstractAggregateTransformer} - objekter.
 
 \input{code/migrator-resolveversion}
 
-Oppgaven til funksjonen \emph{getPersistedKey} er å kople dataobjektets nøkkel i en innkommende HTTP-spørring (k) med applikasjonsversjonens nøkkel (x) på formen \texttt{k + ":" + x}. Det er en privat metode som brukes av de tre migrasjonsmetodene som vises i kodeoppføringer 4.6 til 4.8. Metoden er gjort privat for klasseinstansen med vilje for å abstrahere applikasjonen bort fra databaselogikken.
+Oppgaven til funksjonen \emph{getPersistedKey} er å kople dataobjektets nøkkel i en innkommende HTTP-spørring (k) med applikasjonsversjonens nøkkel (x) på formen \texttt{k + ":" + x}. Det er en privat metode som brukes av de migrasjonsmetodene i kodeoppføringer \ref{mget} og \ref{mput}. Metoden er gjort privat for klasseinstansen med vilje for å abstrahere applikasjonen bort fra databaselogikken.
 
-I Migrator - kalssen er tre metoder implementert for å migrerere aggregater som kommer fra henholdsvis en \texttt{GET} \-, en \texttt{POST} \-, og en \texttt{PUT} - forespørsel. I testapplikasjonen, som diskuteres i kapittel fem, er det DBUpgradinator som står for all håndtering av spørringskall til databaseklienten.
+I Migrator - kalssen er to metoder implementert for å migrerere aggregater som kommer fra henholdsvis en \texttt{GET} - og en \texttt{PUT}\-forespørsel. I testapplikasjonen WebShopSimulator er det DBUpgradinator som står for all håndtering av spørringskall til databaseklienten.
 
 \input{code/migrator-get}
 
-\texttt{GET}\-migrasjonsmetoden returnerer spørringsresultatet av brukerens forespørsel til applikasjonen. Selve migrasjonsprosessen blir utført ved å opprette én ny tråd der en lambda-funksjon kjøres i gjennom grensesnittet \textbf{CompletableFuture}. Effekten av bruken av dette grensesnittet er at Migrator-instansen utfører alle aggregatmigrasjoner i en annen tråd enn kjøringstråden som betjener en brukerforespørsel. og vil derfor
+\texttt{GET}\-migrasjonsmetoden returnerer spørringsresultatet av brukerens forespørsel til applikasjonen. Selve migrasjonsprosessen blir utført ved å opprette én ny tråd der en lambda-funksjon blir kalt én gang.
 
 \input{code/migrator-put}
 
@@ -64,3 +62,4 @@ Den andre migrasjonsfunskjonen er noe annerledes fra \emph{getAndMigrateAggregat
 For at \textbf{Migrator} - instansen skal kunne registrere at spørringen feilet, må den motta et unntak som en retur\-verdi, som kommer til å være lik \texttt{null} hver gang spørringen ble fullbyrdet. Utvikleren forventes å skrive en separat klasse som implementerer dette grensesnittet. Det er denne klassen som må rydde opp i eventuelle  flettekonflikter, det vil si hver gang \emph{get}-kallet returnerer en liste av aggregater i stedet for bare ett.
 
 Som en konsekvens av denne kildekoden kan DBUpgradinators brukes i webapplikasjoner med agggregatorienterte datamodeller som bruker andre nøkkelverdi\-lagre enn Project Voldemort til å persistere data.
+
