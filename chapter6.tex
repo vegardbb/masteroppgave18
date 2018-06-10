@@ -4,23 +4,52 @@
 
 Dette kapitlet vil oppsummere masteroppgavens formål og hvordan det har blitt oppnådd. Oppfyllelse av målene satt i kapittel \ref{goals} blir vurdert.
 
+\section{Om DBUpgradinator}
+
 I dette prosjektet ble en programvaremodul, kalt DBUpgradinator, implementert i språket Java. Denne modulen er skrevet for automatisk å migrere persisterte aggregat i en NoSQL - database på lat vis. Modulen abstraherer bort databaselogikk og gjemmer den bak et spørringsgrensesnitt. På dette viset er den ikke låst til en spesifikk databasepakke. Modulen er testet i en Java-webapplikasjon der Project Voldemort tjener som databasehåndterer.
 
-Testresultatene fra kapittel 5 demonstrerer at DBUpgradinator kan brukes til å migrerere JSON-serialiserte dataobjekter til én versjon til den neste av en webapplikasjon, uten at noen noder blir slått av. Man kan derfor fastslå at programvaremodulen oppfyller de funksjonelle krav opplistet i kapittel 4.2.
+Testresultatene fra kapittel 5 demonstrerer at DBUpgradinator kan brukes til å migrerere JSON-serialiserte dataobjekter til én versjon til den neste av en webapplikasjon, uten at noen noder blir slått av. Man kan derfor fastslå at programvaremodulen oppfyller de funksjonelle krav opplistet i delkapittel \ref{migrator}.
 
-Modulens største styrke er at den, gitt de antakelser presentert i kapittel 4, kan regulere versjonsmiks mellom skjemaer og applikasjonsinstanser, fordi modulens kildekode forventer at applikasjonsutviklere navngir deres implisitte skjema. Modulen benytter skjemanavn som del av nøkkelen til aggregatene. Følgelig må applikasjonsinstansen spesifisere navnet på skjemaversonen den opererer på, i tillegg til aggregatets ID for å lese dets data. Modulens kildekode viser også at hvordan støtte for levende oppdatering av en aggregatoritentert datamodell implementeres i programkode avhenger av programvarens arkitektur.
+Modulens største styrke er at den, gitt de antakelser presentert i kapittel 4, kan regulere versjonsmiks mellom skjemaer og applikasjonsinstanser, fordi modulens kildekode forventer at applikasjonsutviklere navngir deres implisitte skjema. Modulen benytter skjemanavn som del av nøkkelen til aggregatene.  Følgelig må applikasjonsinstansen spesifisere navnet på skjemaversonen den opererer på, i tillegg til et ID-prefiks for å lese et aggregat. 
 
-Videre påfører datamigrasjonsmodulen, gjennom Migrator - klassen, én ekstra asynkron PUT - spørring for hver spørring på et aggregat i et gammelt skjema. Denne ekstra operasjonen enten oppretter eller oppdaterer en nyere utgave av aggregatet. Den nye utgaven er en streng av tekst, utledet og opprettet av en aggregat-transformasjonsklasse. Slik kan endringer som gjøres i en gammel applikasjonsinstans også kunne leses av en ny applikasjonsinstans.
+Videre påfører datamigrasjonsmodulen, gjennom Migrator - klassen, én ekstra asynkron PUT - spørring for hver spørring på et aggregat i et gammelt skjema. Denne ekstra operasjonen enten oppretter eller oppdaterer en nyere utgave av aggregatet. Den nye utgaven er en streng av tekst, utledet og opprettet av en aggregat-transformasjonsklasse. Slik kan endringer som gjøres i en gammel applikasjonsinstans, også kunne leses av en ny applikasjonsinstans.
 
-Ulempen med denne egenskapen er at skriveoperasjonen forårsaket av Migrator-instansen kan sammenfalle med brukerinititerte transaksjoner i en oppgradert applikasjonstjener, og derav skape flettekonflikter utvikleren må ta høyde for i sin egen kildkeode. Sett fra applikasjonens perspektiv vil databaselaget i praksis yte færre brukerinitierte transaksjoner, det vil si PUT eller GET - operasjoner, per tid.
+Ulempen med denne egenskapen er at skriveoperasjonen forårsaket av Migrator-instansen kan sammenfalle med brukerinititerte transaksjoner i en oppgradert applikasjonstjener, og derav skape flettekonflikter utvikleren må ta høyde for i sin egen kildekode. Sett fra applikasjonslagets perspektiv, vil databaselaget i praksis yte færre brukerinitierte transaksjoner, det vil si PUT eller GET - operasjoner, per tid.
 
-Alternativt kunne implementasjonen utføre én ekstra GET - spørring på den nye aggregatnøkkelen for å kontrollere at aggregatet ikke allerede er migrert til neste skjemaversjon. Imidlertid vil databasen utsettes for mange bomsøk når applikasjonen gjennomgår en rullerende oppgradering. Følgelig vil gjennomstrømmings-ytelsen ytterligere når hver brukerinitiert spørring påkrever to ekstra spørring når applikasjonen og dets skjema oppgraderes. 
+Alternativt kunne implementasjonen utføre én ekstra GET - spørring på den nye aggregatnøkkelen for å kontrollere at aggregatet ikke allerede er migrert til neste skjemaversjon. Imidlertid vil databasen utsettes for mange bomsøk når applikasjonen gjennomgår en rullerende oppgradering. Følgelig vil gjennomstrømmings\-ytelsen svekkes ytterligere når hver brukerinitiert spørring påkrever to ekstra spørringer når applikasjonen og dens skjema oppgraderes.
 
-Det er få artikler å finne i indeksen til Google Scholar på levende datamigrasjon av NoSQL-baserte applikasjoner. Én årsak til dette er at datamigrasjon er en spesifikk problemstilling den enkelte applikasjonsutvikler selv må ta stilling til, og løse innenfor rammene satt av egne systemkrav. I likhet med versjonskonflikter i Dynamo/Voldemort, er det utvikleren som har kjennskap til applikasjonens domene. Derfor er det kun vedkommende som kan avgjøre hvilke data som skal bevares ved en flettekonflikt. Applikasjonens utviklere er best rustet til å vite hvordan et aggregat skal migreres fra den gamle tilstanden av datamodellen til den neste. DBUpgradinator demonstrerer i testapplikasjonen at dette er tilfelle. Denne problemstillingen har ikke vært spesielt interressant fra et akademisk synspunkt, primært fordi det allerede finnes programvaremoduler som kan migrere dataobjekter i levende tjenerinstanser, til eksempel \emph{cassandra-migration-tool-java}.
+\section{Akademisk interesse rundt levende datamigrasjon}
 
-DBUpgradinator pålegger webapplikasjonsutvikleren å skrive én separat klasse for hver oppdatering av applikasjonen. Denne øvelsen kan bli svært tidkrevende hvis programlogikken gjennomgår omfattende endringer. Disse kommandoene kan brukes til å definere transformasjonsfunksjoner på ett spesifikt skjemaformat, for eksempel JSON eller Avro. Formålet bak en slik spesialutformet syntaks er å strømlinjeforme prosessen med å definere transformasjonsfunksjoner. Dette programmet kan da erstatte den tungvinte prosessen der en programmer deifnerer en subklasse av AbstractAggregateTransformer, distribuerer en \texttt{.java} - fil der nevnte subklasse er definert til hver av applikasjonstjenerne, og kompilerer en \texttt{.class} på hver av dem. Programmet bør kunne kjøres i et skall fra enhver applikasjonsinstans der DBUpgradinator er installeres. Dette konsollgrensesnittet vil være en vesentlig forbedring fra den nåværende kildekoden. \cite{saur2016} nedfeller et liknende mål for KVolve i sine konklusjoner.
+Det er få artikler å finne i indeksen til Google Scholar på levende datamigrasjon av NoSQL-baserte applikasjoner. Én årsak til dette er at datamigrasjon er en spesifikk problemstilling den enkelte applikasjonsutvikler selv må ta stilling til, og løse innenfor rammene satt av egne systemkrav. I likhet med versjonskonflikter i Dynamo/Voldemort, er det utvikleren som har kjennskap til applikasjonens domene.
 
-For enkelhets skyld har implementasjonen av DBUpgradinator støtte for kun ett serialiseringsformat, JSON. I testapplikasjonen har Voldemort serialisert med \texttt{string}-formatet, det vil si at databasen ikke har noe formening om strukturen til hvert persisterte aggregat. Voldemort har et eget serialiseringsformat, basert på Apache Avro, som kan migrere data. Det ville være interressant å undersøke hvilken datamigrasjonsmetode som gjør webapplikasjonen mest tilgjengelig for betjening av brukersorespørsler under datamigrasjon.
+Derfor er det kun vedkommende som kan avgjøre hvilke data som skal bevares ved en flettekonflikt. Applikasjonens utviklere er best rustet til å vite hvordan et aggregat skal migreres fra den gamle tilstanden av datamodellen til den neste. DBUpgradinator demonstrerer i testapplikasjonen at dette er tilfelle.
+
+Denne problemstillingen har ikke vært spesielt interressant fra et akademisk synspunkt, primært fordi det allerede finnes programvaremoduler som kan migrere dataobjekter i levende tjenerinstanser, til eksempel \emph{cassandra-migration-tool-java}.
+
+\section{Implementere DBUpgradinator som en valgfri komponent av Voldemort} \label{integratewithvoldemort}
+
+Et meget viktig designvalg er å bestemme hvilken del av den logiske arkitekturen migrasjon skal forekomme. I denne oppgaven har ansvaret for levende migrasjon av aggregater fra gamle skjema til nye tilfalt applikasjonsnivået. I et programvaresystem med en aggregatorientert datamodell er ikke databasesystemet klar over applikasjonens implisitte aggregatskjema, i motsetning til systemer hvis datamodell er relasjonell. I disse systemene er det databasesystemet som håndhever skjemaet. Da er det naturlig å forsøke å implementere levende datamigrasjon i applikasjonslogikken, snarere enn i databaselogikken.
+
+Som vist i evalueringskapitlet av denne oppgaven, innebærer et slikt design ekstra nettverkstrafikk for hvert aggregat som aksesseres, enten for oppdatering eller lesing. Årsaken til den ekstra nettverkstrafikken er at hvert migrerte aggregat også må replikeres. Når replikeringsfaktoren er 3, vil en PUT til et aggregat som samtidig migreres til neste versjon resultere i seks skriveoperasjoner i databaseklyngen.
+
+Hvis migrasjonsmodulen hadde blitt implementert som en egen type NoSQL-tjener underordnet Project Voldemort, ville ikke tjenestetrafikken dobles hver gang systemet gjennomgår en oppdatering. På den annen siden ville ikke den modulære oppgraderingsmodulen ha den enestående kvalitet at den kan benyttes på andre aggregatorienterte databasesystemer enn Project Voldemort.
+
+En passende prosjektoppgave på høsten kan være å kartlegge Voldemorts allerede implementerte støtte for datamigrasjon, så vel som resten av Voldemorts kildekode. En påfølgende masteroppgave kan da implementere en avart av DBUpgradinator i form av en egen \textbf{Store} - klasse i Voldemorts kildekode.
+
+\section{Implementere et kommandolinjegrensesnitt for DBUpgradinator}
+
+DBUpgradinator pålegger webapplikasjonsutvikleren å skrive én separat klasse for hver oppdatering av applikasjonen. Denne øvelsen kan bli svært tidkrevende hvis programlogikken gjennomgår omfattende endringer. Disse kommandoene kan brukes til å definere transformasjonsfunksjoner på ett spesifikt skjemaformat, for eksempel JSON eller Avro.
+
+Formålet bak en slik spesialutformet syntaks er å strømlinjeforme prosessen med å definere transformasjonsfunksjoner. Dette programmet kan da erstatte den tungvinte prosessen der en programmerer definerer en subklasse av AbstractAggregateTransformer, distribuerer en \texttt{.jar} - fil der nevnte subklasse er definert til hver av applikasjonstjenerne, og kompilerer en \texttt{.class}-filer på hver av dem. 
+
+Kommandolinjeprogrammet bør kunne kjøres i et skall fra enhver applikasjonsinstans der DBUpgradinator er installert. Dette konsollgrensesnittet vil være en vesentlig forbedring fra den nåværende kildekoden. \cite{saur2016} nedfeller et liknende mål for KVolve i sine konklusjoner.
+
+For enkelhets skyld har implementasjonen av DBUpgradinator støtte for kun ett serialiseringsformat, JSON. I testapplikasjonen har Voldemort serialisert med \texttt{string}-formatet, det vil si at databasen ikke har noe formening om strukturen til hvert persisterte aggregat. Voldemort har allerede et eget serialiseringsformat, basert på Apache Avro, som kan migrere data. Det ville være interressant å undersøke hvilken datamigrasjonsmetode som gjør webapplikasjonen mest tilgjengelig for betjening av brukerforespørsler under datamigrasjon.
 
 \cleardoublepage
+
+%%%%%%%%%
+% Subseksjoner:
+%  - Evaluering av måloppnåelse
+%%%%%%%%%
 
