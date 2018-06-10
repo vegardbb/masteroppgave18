@@ -1,34 +1,107 @@
-\subsection*{Om Migrators blokkerende natur}
+\section{Diskusjon}
 
-Migrator-klassen, beskrevet i kodeoppføring x, hadde opprinnelig en egen tråd som skulle konstant kjøre en while-løkke i funksjonen \emph{aggregateTransformerReceiver}. Denne funksjonen gjør et kall til metoden \emph{accept} i \textbf{ServerSocket}-klassen. Effekten av dette metodekallet er at tråden som kjører funksjonen må aktivt vente på en innkommende dataenhet, for eksempel en matrise (byte[] i Java) av oktetter. Ved kjøretid kan denne tråden, som skapes i Migrators konstruktør, okkupere prosessoren store deler av kjøretiden. Dette resulterer i en vesentlig reduksjon av systemets ytelse sammenliknet med et tilsvarende produksjonsmiljø der DBUpgradinator ikke hadde vært installert.
+Her følger en tolkning av testenes resultater og en kvalitativ sammenlikning med KVolve sin ytelsespåvirkning på Redis, jamfør testresultatene \cite{saur2016} presenterer på side 10 i sin artikkel. Før testresultatene drøftes og evalueres opp mot kvalitetskravene vil noen relevante erfaringer belyses, som ble notert da testene ble gjennomført.
 
+\subsection{Om flertrådede programvaresystemers blokkerende natur}
 
+Migrator-klassen, beskrevet i delkapittel \ref{migrator}, skulle opprinnelig en egen tråd som konstant kjørte en while-løkke i funksjonen \emph{aggregateTransformerReceiver} der den ventet på nye aggregattransformatorer i for mav binære filer. Denne funksjonen gjør et kall til metoden \emph{accept} fra \textbf{ServerSocket}-klassen.
 
-\section*{Implementere DBUpgradinator som del av Voldemort}
+Effekten av dette metodekallet er at tråden som kjører funksjonen må \underline{aktivt vente} på en innkommende dataenhet, for eksempel en matrise (byte[] i Java) av oktetter. Ved kjøretid kan denne tråden okkupere prosessoren store deler av kjøretiden. Dette ville ha resultert i en vesentlig reduksjon av systemets ytelse sammenliknet med et tilsvarende produksjonsmiljø der DBUpgradinator ikke hadde vært installert. Under en prøvetest viste prosesshåndtøren \underline{htop} at tråden som \emph{aggregateTransformerReceiver} kjørte i brukte den ene prosessorkjernen i datamaskinen 95 \% av kjøretiden.
 
-Et meget viktig designvalg er å bestemme hvilken del av den logiske arkitekturen migrasjon skal forekomme. I denne oppgaven har ansvaret for levende migrasjon av aggregater fra gamle skjema tilfalt applikasjonslaget, og ikke databasenivået. 
+\subsection{Om konfigurasjonen av Voldemort-tjenerne}
 
+Hver virtuell maskin har kun én logisk prosessorkjerne og bare én gigabyte fysisk minne tilgjengelig for å oppbevare addresseområder til kjørende tråder i. Under kjøring av alle tre testene var langt ifra all minnet opptatt til enhver tid. Ifølge htop var på det meste rundt 560 MB opptatt på én av de virtuelle datamaskinene.
 
-\subsection*{Erfaringer under testing}
+Minneforbruket når hverken applikasjonen eller databasenoden var oppe lå på rundt 40 MB. Det er derfor skjellig grunn til å anta at det hadde gått fint an å doble antallet tråder (max.threads) i tjenerkonfigurasjonen server.properties (se kodeoppføring \ref{serverproperties}). Videre burde forespørselssimulatoren ha sendt det samme antallet forespørsler om gangen. Ettersom testmiljøet i utgangspunktet er primært ment for å demonstrere at DBUpgradinator oppfyller sine funksjonelle krav, har denne suboptimale konfigurasjonen lite å si for konklusjonen.
 
-Det første hinderet for testprosessen oppsto før forespørselssimulatoren i det hele tatt ble startet opp på den norske klienten. Etter å ha kompilert kildekoden til WebShop sammen med dets avhengige pakker, deriblant DBUpgradinator, Voldemort og Spark, ble jar-filen kopiert til hver av de fire tjenerne i applikasjonsklyngen.
+%\clearpage
+\begin{lstlisting}[basicstyle=\small, label={testlog}, caption={De første 50 linjene i den applikasjonsloggen til tjeneren ''vbb-master2018-crabbe''' (se tabell \ref{droplets}) fra test 2.}]
+INFO @ 2018-06-03 19:13:06 - Received aggregate transformer for schema x
+INFO @ 2018-06-03 19:22:36 - Persisted key a03d6b11-0adb-4790-af1b-0b74da4ff46f:y
+INFO @ 2018-06-03 19:22:36 - Persisted key f58e6db5-fc98-40c7-b260-ce8ace6deb37:y
+INFO @ 2018-06-03 19:22:36 - Persisted key ffc1d627-2aa8-4d5e-84cf-400d996390a2:y
+INFO @ 2018-06-03 19:22:36 - Persisted key f0dd8e67-75f8-468c-b034-3155936476f7:y
+INFO @ 2018-06-03 19:22:36 - Persisted key 5eff3261-8ec0-42eb-9dcc-5eb9bd9e149f:y
+INFO @ 2018-06-03 19:22:36 - Persisted key 2e1b0b23-6d34-43ca-86bd-3ca87129c001:y
+INFO @ 2018-06-03 19:22:36 - Persisted key e392bc7c-cf3e-4dbe-92c2-ce8adf4d36f4:y
+INFO @ 2018-06-03 19:22:36 - Persisted key 364e5637-0f68-4799-9a07-6b0f23081401:y
+INFO @ 2018-06-03 19:22:37 - Persisted key 4fc88c81-6dcb-47c1-96bf-b8ce7eed70f0:y
+INFO @ 2018-06-03 19:22:37 - Persisted key 520d27df-7cf4-4756-bb1e-a7279cf462f6:y
+INFO @ 2018-06-03 19:22:37 - Persisted key fccd3366-9d9f-4997-af6b-51104be5fee9:y
+INFO @ 2018-06-03 19:22:37 - Persisted key 00951196-a821-4341-9430-2e0a6a758160:y
+INFO @ 2018-06-03 19:22:36 - Persisted key 6b6c44ef-af67-4d07-bd2a-0cc4990fe05d:y
+INFO @ 2018-06-03 19:22:37 - Persisted key 4c7b6c62-fca2-4c9c-b734-af49eda929a6:y
+INFO @ 2018-06-03 19:22:37 - Persisted key c07ce7c9-b4c1-42d0-ae42-8da83ecc256b:y
+INFO @ 2018-06-03 19:22:37 - Migrated aggregate with key 59ae21bf-faa1-4842-9ab7-7c95f1c9331b:x to 59ae21bf-faa1-4842-9ab7-7c95f1c9331b:y
+INFO @ 2018-06-03 19:22:37 - Migrated aggregate with key d630c921-f508-4551-9527-c9491684622b:x to d630c921-f508-4551-9527-c9491684622b:y
+INFO @ 2018-06-03 19:22:37 - Persisted key 59ae21bf-faa1-4842-9ab7-7c95f1c9331b:x
+INFO @ 2018-06-03 19:22:37 - Migrated aggregate with key 09d042f2-d817-4760-8916-30f45b427c39:x to 09d042f2-d817-4760-8916-30f45b427c39:y
+INFO @ 2018-06-03 19:22:37 - Persisted key 11547285-57ee-472d-b865-ff7b49a1d6f1:y
+INFO @ 2018-06-03 19:22:37 - Persisted key 3f16dfb8-faeb-4cf6-9063-65254b995260:y
+INFO @ 2018-06-03 19:22:37 - Persisted key 39695220-57db-4bc4-9f19-d2572331d51e:y
+INFO @ 2018-06-03 19:22:37 - Persisted key 204160a8-16f3-4810-995f-4a77e1daf2e5:y
+INFO @ 2018-06-03 19:22:37 - Persisted key 91b53285-db85-4fce-b465-b6aebc3bf98b:y
+INFO @ 2018-06-03 19:22:37 - Persisted key 811bb422-0613-4534-89b8-8ef3ae6ab614:y
+INFO @ 2018-06-03 19:22:37 - Persisted key 80103ddb-bfda-4ee9-ab20-4cdfe1c9aae3:y
+INFO @ 2018-06-03 19:22:37 - Migrated aggregate with key 1a80ecc1-9283-4c8d-8d33-7b72f4857260:x to 1a80ecc1-9283-4c8d-8d33-7b72f4857260:y
+INFO @ 2018-06-03 19:22:37 - Migrated aggregate with key 93c33378-1cbf-4d42-acb6-e3f108e585d7:x to 93c33378-1cbf-4d42-acb6-e3f108e585d7:y
+INFO @ 2018-06-03 19:22:37 - Persisted key c5bb9d58-33e2-4a0a-b65a-23107b70101c:x
+INFO @ 2018-06-03 19:22:37 - Migrated aggregate with key a8804429-2993-42a3-9535-c43c55820520:x to a8804429-2993-42a3-9535-c43c55820520:y
+INFO @ 2018-06-03 19:22:37 - Migrated aggregate with key 1a5bbc47-c9ee-4f4c-8527-334a6230f8f7:x to 1a5bbc47-c9ee-4f4c-8527-334a6230f8f7:y
+INFO @ 2018-06-03 19:22:37 - Migrated aggregate with key a5364539-bada-468f-b36e-d050aeb83929:x to a5364539-bada-468f-b36e-d050aeb83929:y
+INFO @ 2018-06-03 19:22:37 - Migrated aggregate with key a345c42e-81ab-4a79-bac2-99731cdb5461:x to a345c42e-81ab-4a79-bac2-99731cdb5461:y
+INFO @ 2018-06-03 19:22:37 - Persisted key 1a80ecc1-9283-4c8d-8d33-7b72f4857260:x
+INFO @ 2018-06-03 19:22:37 - Persisted key a5364539-bada-468f-b36e-d050aeb83929:x
+INFO @ 2018-06-03 19:22:37 - Persisted key cb3ec8a0-0495-4e81-bb54-14236a0ed842:y
+INFO @ 2018-06-03 19:22:37 - Migrated aggregate with key 493f88a1-33bf-4bcc-839f-102bb34489a3:x to 493f88a1-33bf-4bcc-839f-102bb34489a3:y
+INFO @ 2018-06-03 19:22:38 - Persisted key 605e6a1f-39c8-4d25-9660-52d191e3eed5:y
+INFO @ 2018-06-03 19:22:38 - Persisted key 0321a52a-05c5-45b7-bf02-768b471cc401:x
+INFO @ 2018-06-03 19:22:38 - Persisted key 32e35502-7dbe-441d-b730-7550d6b5c3cd:y
+INFO @ 2018-06-03 19:22:38 - Migrated aggregate with key 30932a85-c8b3-4863-99fb-f70c8da6f777:x to 30932a85-c8b3-4863-99fb-f70c8da6f777:y
+INFO @ 2018-06-03 19:22:38 - Persisted key b432c9b9-5a84-4412-8220-f5e1709e9c6b:y
+INFO @ 2018-06-03 19:22:38 - Migrated aggregate with key 0321a52a-05c5-45b7-bf02-768b471cc401:x to 0321a52a-05c5-45b7-bf02-768b471cc401:y
+INFO @ 2018-06-03 19:22:38 - Migrated aggregate with key 9507a355-f53e-4962-ac00-ef353e9c8ef3:x to 9507a355-f53e-4962-ac00-ef353e9c8ef3:y
+INFO @ 2018-06-03 19:22:38 - Persisted key 63282b64-c582-49c3-9774-f3aabd0f518b:x
+INFO @ 2018-06-03 19:22:38 - Persisted key c7a6c395-e269-48a5-9eff-514c0a9ca57c:y
+INFO @ 2018-06-03 19:22:38 - Persisted key 63e937a9-2414-4af6-9086-23744f04bc09:y
+INFO @ 2018-06-03 19:22:38 - Persisted key d01a7279-0a1d-4f77-a05d-b661b8350bb8:y
+INFO @ 2018-06-03 19:22:38 - Persisted key 41701182-d9fc-49a6-bd41-a18848900c74:y
+\end{lstlisting}
 
+\subsection{Erfaringer fra test 2}
 
+Man kan konkludere med at DBUpgradinators klasser fungerer slik de er ment å fungere, ved å se på DBUpgradinator sin applikasjonslogg på hver av de fire applikasjonstjenerne fra den noe korte perioden i test 2. Deler av alle fire loggene er samlet samlet sammeni kodeoppføring \ref{testlog}. I denne loggen kan vi se på den aller første linjen at I/O - operasjonen som laster inn en aggregattransformator fra en allerede lagret fil fungerte feilfritt.
 
-\emph{aggregateTransformerReceiver}, som vises i kodeoppføring \ref{atr} kjøres i en separat tråd idet konstruktøren til Migrator kalles, og er følgelig ikke del av en ordinær spørrings livsløp. Kodeobjektet er en funksjon som mottar AggregateTransformer-objekter og instansierer dem som instanser av den abstrakte superklassen \textbf{AbstractAggregateTransformer}. og holder rede på dem i versjonsrekkefølge i en privat liste. Funksjonen har også ansvaret for å påkalle transformasjonsmetoden til hvert objekt.
+Dermed har feltvariabelen ''transformers'' ett objekt i sin nøkkelverdi\-liste. Det objektet er en instans av \textbf{AbstractAggregateTransformer}, som inneholder en konkret implementasjon av den abstrakte metoden \emph{transformAggregate}, som tilhører subklassen \textbf{app.}\textbf{\-UserAggregateTransformer}. Objektets oppgave er å kopiere aggregater for skjema \emph{x} til ekvivalente aggregater for skjema \emph{y}.
 
-Funksjonen kalles i en metodereferanse som sendes som et argument inn i \textbf{Thread} - konstruktøren i kroppen til konstruktøren til Migrator. En metodereferanse er et forkortet lambdauttrykk, som kompilatoren i Java 8 forstår og klarer å inferere både antall argumenter og typen til hvert argument.
+På linje 17 i kodeoppføring \ref{testlog} står følgende: ''INFO @ 2018-06-03 19:22:37 - Migrated aggregate with key 59ae21bf-faa1-4842-9ab7-7c95f1c9331b:x to 59ae21bf-faa1-4842-9ab7-7c95f1c9331b:y''. Denne logglinjen sier at aggregatet med id ''59ae21bf-faa1-4842-9ab7-7c95f1c9331b'' har blitt migrert fra skjema \emph{x} til skjema \emph{y}, så fra og med det oppgitte tidspunktet eksisterer disse to aggregatene med lik UID-prefiks og ulik skjemasuffiks i databasen. Liknende logglinjer er å finne på linjer 18, 20, 28, 29, 31, 32, 33, 34, 38, 42, 44,og 45.
+
+Vi kan også finne eksempler på suksessfulle oppdateringer av aggregater opprettet under skjema \emph{x}. Den første registrerte oppdateringsversjonen finner vi på linje 19 i kodeoppføring \ref{testlog}. De øvrige bevisene på at oppdateringer ble skrevet på aggregater innen det gamle skjenaet, \emph{x}, er på linjer 30, 35, 36, 40 og 46. Alle de øvrige ikke-nevnte linjene i kodeoppføring \ref{testlog} er opprettelser av nye aggregater i det nye skjemaet. De 16 første linjene er alle POST - linjer.
+
+\subsection{Erfaringer fra test 1 og 3}
+
+For å anslå ytelsestapet til applikasjonen sammenliknes resultatene fra test 1 med test 3. Den gjennomsnittlige gjennomstrømmingen (eng. ''throughput'') for alle fire tjenerne samlet, målt i antall behandlede skriveforespørsler per sekund, ble for test 1 kalkulert til å være 512. I test 3 ble gjennomstrømmingen regnet ut til 133 forespørsler i sekundet. I forhold til frekvensplottene i figurer \ref{plott1} og \ref{plott3} er det kalkulerte gjennomsnittet visualisert som den røde streken trukket gjennom sentrum av ''bølgen''.
+
+Statistikken tilsier at gjennomstrømmingen av forespørsler til applikasjonen under migrasjon er omtrent en fjerdedel av dens gjennomstrømming når den ikke gjennomgår datamigrasjon. Det intuitive resultat er at applikasjonen prosesserer 50 \% færre forespørsler per tid, ettersom hver skriveforespørsel forårsaker en programmatisk initiert ditto på en annen nøkkel. I virkeligheten er forholdene mer komplekse. Forklaringen på dette ytelsestapet  på 75 \% er forankret i databasekonfigurasjonen.
+
+I konfigurasjon \ref{cluster} er ''routing'' - strategien satt til ''client''. Med denne innstillingen er det \textbf{StoreClient} - instansen i applikasjonens kjøretidsmiljø som hasher nøkler inn i den logiske hashringen. Det er altså databaseklienten som sender og koordinerer replikeringsforespørsler til de fire databasenodene i klyngen. Når hver oppdatering til aggregater for det gamle skjemaet også trigger en skriveforespørsel på en ny nøkkel vil det si at i alt \(2 * 3 = 6\) replikeringsoperasjoner bli koordinert for hvert PUT - kall.
+
+I retrospekt er det sannsynlig at ytelsestapet skyldes en kombinasjon av den statiske databasekonfigurasjonen som ikke tålte doblingen av spørringslasten under migrasjonstesten, og doblingen av nettverkstrafikk mellom databasenodene og applikasjonstjenerne under migrasjonstesten. At disse er årsakene til testresultatene er svært plausible, den økte feilraten i forespørselsbehandling tatt i betraktning. 
+
+\subsection{Om \texttt{getAndMigrateAggregate} - metoden i DBUpgradinator}
+
+Metoden i kodeoppføring \ref{mget} er skrevet slik at den automatisk migrerer aggregater fra det gamle skjemaet såfremt aggregater med det gamle skjemaet sitt suffiks i sin ID blir forespurt. Det samme gjøres ikke i det omvendte tilfelle, når en applikasjon med den nye versjonen aksesserer samme aggregat-ID for sitt skjema. Migrator - klassens GET - metode (\texttt{getAndMigrateAggregate}) bør omformuleres til å ta høyde for aksesser fra den nye versjonen også.
+
+I kodeoppføring \ref{mget} kan man telle i alt tre databasekall: Ett for å lese aggregatet i det gamle skjemaet, som er etterspurt av nettleserklienten, ett for å kontrollere at det nevnte aggregatet ikke allerede er migrert til det nye skjemaet, og ett for å skrive strengverdien til den migrerte aggregatnøkkelen. Denne migrasjonsfunksjonen er også skadelig for applikasjonens evne til å behandle mange HTTP-forespørsler fra klienter samtidig.
 
 %%%%%%%%%
-%Momenter:
-%  - Erfaring under testing (påbegynt ovenfor)
-%  - Øvrig testing som ikke ble loggført (påbegynt ovenfor)
-%    - Kjøring av aggregateTransformerReceiver i en egen tråd
-%    - CompletableFuture og dets effekt på test2
-%  - Gjennomstrømmingen i test1 kontra test3 kontra KVolve
+% Subseksjoner:
 %  - Kvalitativ sammenlikning med Kvolve
+%  - GETen til DBUpgradinator er uoptimal/feil
 %  - Evaluering av kravoppfyllelse
-%  - Evaluering av måloppnåelse
-%  - Konfigurasjon av databasen
-%*
+%
+%  - Blokkerende I/O
+%  - Konfigurasjon av databasen: Flere tilkoplinger og mer arbeidsminne var mulig
+%  - Gjennomstrømmingen i test1 kontra test3 kontra KVolve
+%%%%%%%%%
 

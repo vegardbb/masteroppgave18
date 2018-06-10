@@ -4,7 +4,7 @@ Delkapitlet presenterer loggførte resultater fra tre tester der HTTP-forespørs
 
 \subsection{Test 1: Oppretting av aggregater, uten migrasjon}
 
-I den første testen ble aggregater generert av frontendsimulatoren, beskrevet i delkapittel \ref{k51}, for deretter å bli sendt til hver sin tilfeldige applikasjonstjener i hver sin forespørsel, hvis metode er ''POST''. Denne testen ble kjørt for å måle omtrent hvor mange skriveforespørsler klyngen kan håndtere samtidig uten å migrere aggregatene som postes. Skriptet som simulerer applikasjons frontende velger pseudotilfeldig hvilken tjener som mottar hver HTTP-forespørsel, hvis metode er ''POST''. ''Frontenden'' logger også alle responsobjektene den mottar fra applikasjonstjenerne. Responsloggen er oppsummert i tabell \ref{frontend1}.
+I den første testen ble aggregater generert av frontendsimulatoren, beskrevet i delkapittel \ref{k51}, for deretter å bli sendt til hver sin tilfeldige applikasjonstjener i hver sin forespørsel, hvis metode er ''POST''. Denne testen ble kjørt for å måle omtrent hvor mange skriveforespørsler klyngen kan håndtere samtidig, uten å migrere aggregatene som postes. Skriptet som simulerer applikasjons frontende velger pseudotilfeldig hvilken tjener som mottar hver HTTP-forespørsel, hvis metode er ''POST''. ''Frontenden'' logger også alle responsobjektene den mottar fra applikasjonstjenerne. Responsloggen er oppsummert i tabell \ref{frontend1}.
 
 \input{tables/test1frontend}
 
@@ -14,9 +14,9 @@ Denne testen ble avsluttet etter to timer og 44 minutter, av hensyn til størrel
 
 Tabell \ref{backend1} viser at antallet '200 AOK' svar oppgitt i \ref{frontend1} samsvarer med det opptalte antallet persisterte objekter, naturlig nok fordi alle forespørsler kaller på samme metode. I snitt ble 520 aggregater skrevet til disk per sekund av de fire databasenodene. Til sammenlikning har Linkedin klart å betjene rundt 16 og et halvt tusen skriveforespørsler i sekundet på en klynge bestående av én eneste flertrådet tjener \citep{kreps2009}.
 
-Den viktigste faktoren som bidrar til den forskjellen i gjennomstrømming mellom testmiljø og Linkedins resultater er quroum-konfigurasjonen. Både replikeringsfaktoren (N), lesefaktoren (R) og skrivefaktoren (W) til klyngen beskrevet i ''Performance''\-kapitlet er lik 1. De korresponderende innstillinger for klyngen DBUpgradinator ble testet i, er henholdsvis 3, 2, og 2.
+Quroum-konfigurasjonen er den viktigste faktoren som bidrar til forskjellen i gjennomstrømming mellom testmiljøet og Linkedins resultater. Både replikeringsfaktoren (N), lesefaktoren (R) og skrivefaktoren (W) til klyngen beskrevet i ''Performance''\-kapitlet er lik 1. De korresponderende innstillingene for klyngen DBUpgradinator ble testet i, er henholdsvis 3, 2, og 2.
 
-I ''Performance'' - kapitlet til Project Voldemorts nettsider skriver \cite{kreps2009} at platelageret utgjør den ytelsesmessige flaskehalsen i en webapplikasjon. For å begrense feilraten kan man derfor øke størrelsen på hurtiglageret i server.properties-filene. Fordelingen av antallet persisterte aggregater blant de enkelte databasenodene er for øvrig brukbart jevn.
+I ''Performance'' - kapitlet til Project Voldemorts nettsider skriver \cite{kreps2009} at platelageret utgjør den ytelsesmessige flaskehalsen i en webapplikasjon. For å begrense feilraten, kan man derfor øke størrelsen på hurtiglageret i server.properties-filene. Fordelingen av antallet persisterte aggregater blant de enkelte databasenodene er for øvrig brukbart jevn.
 
 \begin{figure}[hbtp]
   \begin{turn}{-90}
@@ -26,7 +26,7 @@ I ''Performance'' - kapitlet til Project Voldemorts nettsider skriver \cite{krep
   \label{plott1}
 \end{figure}
 
-Plottet i figur \ref{plott1} er basert på DBUpgradinators persisteringslogg for aggregatene som ble opprettet  i løpet av test 1. Loggtidspunktene har blitt gruppert sammen på sammenfallende sekund, og overført til en liste av (\emph{x},\emph{y}) - tupler der x indikerer antallet sekunder siden testen start og \emph{y} representerer antall aggregater persistert på tidspunkt \emph{x}.
+Plottet i figur \ref{plott1} er basert på DBUpgradinators persisteringslogg for aggregatene som ble opprettet  i løpet av test 1. Loggtidspunktene er blitt gruppert sammen på sammenfallende sekund, og overført til en liste av (\emph{x},\emph{y}) - tupler der x indikerer antallet sekunder siden testens start og \emph{y} representerer antall aggregater persistert på tidspunkt \emph{x}.
 
 \subsection{Test 2: Lesing, oppdatering, og oppretting av aggregater, med migrasjon}
 
@@ -35,11 +35,11 @@ I den andre testen forsøkte man å migrere aggregater postet under den første 
 \input{tables/test2frontend}
 \input{tables/test2backend}
 
-Denne testen ble brått avbrutt etter bare tre minutter. Årsaken til at testen ble avbrutt så tidlig var at tre av databasenodene ble permanent utilgjengelige som følge av minneoverflyt i arbeidssettet deres. I alle tre nodene ble minneoverflyten utløst i et buffer for asynkrone spørringer, hvilket var forbeholdt migrasjonsspørringer.
+Denne testen ble brått avbrutt etter bare tre minutter. Årsaken til at testen ble avbrutt så tidlig var at tre av databasenodene ble permanent utilgjengelige som følge av minneoverflyt i arbeidssettet deres. I alle tre nodene ble minneoverflyten utløst i en buffer for asynkrone spørringer, hvilket var forbeholdt migrasjonsspørringer.
 
 På dette tidspunktet brukte \textbf{Migrator}-klassen grensesnittet \textbf{CompletableFuture} til å opprette tråder som kjørte migrasjonslogikken asynkront i en separat gruppe tråder. Etter dette testavbruddet ble kildekoden til DBUpgradinator endret, slik at kallene til CompletableFuture og asynkrone tilbakekall erstattet med \textbf{Thread} - konstruktøren og et kall til \emph{run}.
 
-Tabell \ref{frontend2} viser en feilandel på åtte av ti sendte forespørsler. Dette kommer også av de fatale unntakene som ble kastet hos databasenodene. Tabell \ref{backend2} sier at andelen migrerte aggregater DBUpgradinator registrerte er under 40 prosent. Årsaken til dette er at forespørslene som poster nye aggregat for det nye skjemaet ikke behøver å migreres. I likhet med forrige test er skriveoperasjonene nesten jevnt fordelt blant de fire tjenernodene. I snitt ble 89 aggregat persistert på de fire forskjellige databasenodene per sekund.
+Tabell \ref{frontend2} viser en feilandel på åtte av ti sendte forespørsler. Dette kommer også av de fatale unntakene som ble kastet hos databasenodene. Tabell \ref{backend2} sier at andelen migrerte aggregater DBUpgradinator registrerte er under 40 prosent. Årsaken til dette er at forespørslene som poster nye aggregat for det nye skjemaet, ikke behøver å migreres. I likhet med forrige test er skriveoperasjonene nesten jevnt fordelt blant de fire tjenernodene. I snitt ble 89 aggregat persistert på de fire forskjellige databasenodene per sekund.
 
 \begin{figure}[hbtp]
   \begin{turn}{-90}
@@ -51,7 +51,7 @@ Tabell \ref{frontend2} viser en feilandel på åtte av ti sendte forespørsler. 
 
 \subsection{Test 3: Oppdatering av aggregater, med migrasjon}
 
-I den siste testen har en serie oppdateringsforespørsler (PUT) blitt sendt til applikasjonstjenerne til WebShopSimulator. Forespørsels\-generatoren har lest inn et sett med IDer som den mottok fra tjenerne i test 1. For å genere et oppdatert aggregat lagre den et helt nytt objekt jamfør framgangsmåten beskrevet i delkapittel \ref{k51}.
+I den siste testen har en serie oppdateringsforespørsler (PUT) blitt sendt til applikasjonstjenerne til WebShopSimulator. Forespørsels\-generatoren har lest inn et sett med IDer som den mottok fra tjenerne i test 1. For å generere et oppdatert aggregat, lagrer den et helt nytt objekt, jamfør framgangsmåten beskrevet i delkapittel \ref{k51}.
 
 \input{tables/test3frontend}
 \input{tables/test3backend}
@@ -60,11 +60,13 @@ Ut ifra tabell \ref{backend3} kan man utlede at i snitt ble 133 aggregat persist
 
 Enhver databaseklient krever to bekreftelser på skriveoperasjoner før den returnerer en bekreftelse (skrive-ACK) til applikasjonen, og replikerer hvert aggregat til tre forskjellige noder (R = 3). For hver spørring applikasjonen gjør, gjør spørringskoordinatoren tre skrivespørringer. Når hver HTTP-forespørsel utløser en migrasjonsforespørsel på toppen av dette, blir arbeidslasten dobbelt så stor per aggregat. Hovedårsaken til at nodene gikk ned under denne testen, midlertidig om ikke annet, var at de ikke kunne respondere til flere TCP-forbindelser fra databaseklientene.
 
+I alle tre plottene (figurer \ref{plott1}; \ref{plott2}; \ref{plott3}) kan man se voldsmomme svinginger i antallet persisterte aggregater. Denne trenden har en programmatisk, bakenforliggende årsak. Forespørselsgeneratoren venter en fast tidsperiode for hver pulje/batch med forespørsler som tilsendes applikasjonstjenerne. Dette gjøres både av hensyn til nettverket forespørslene traverserer, og for ikke å overbelaste applikasjonstjenerne.
+
 \begin{figure}[hbtp]
   \begin{turn}{-90}
     \input{plots/plot3}
   \end{turn}{-90}
-  \caption{Graf som plotter grupperte tidspunkt for persistering av oppdaterte data.}
+  \caption{Graf som plotter grupperte tidspunkt for persistering av oppdaterte data (skriveoperasjoner for migrasjonene er ekskludert).}
   \label{plott3}
 \end{figure}
 
