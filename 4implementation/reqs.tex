@@ -1,52 +1,53 @@
 \section{Krav til implementasjon av levende datamigrasjonsløsning}
 
-Her følger de funksjonelle og ikke-funksjonelle krav som stilles til programvaremodulen som skal kunne migrere data fra et implisitt aggregatskjema til det neste uten stans i dataleveranser på brukernes tjenesteforespørsler.
+Her følger de funksjonelle og ikke-funksjonelle krav som stilles til programvaremodulen som skal kunne migrere data fra et implisitt aggregatskjema til det neste, uten stans i dataleveranser på brukernes tjenesteforespørsler.
 
 \subsection{Antakelser}
 
-I kraft av å demonstrere et praktisk konsept vil modulen gjøre visse antakelser om programvarearkitekturen til den jevne webapplikasjon DBUpgradinator kommer til å operere i. Enkelte av disse fordringene er gjort for å gjøre den objekt-orienterte implementasjonen av datamodellevolusjonsløsningen mindre parametrisert og derfor enklere og skrive og enklere å forstå.
+I kraft av å demonstrere et praktisk konsept vil modulen gjøre visse antakelser om programvarearkitekturen til den jevne webapplikasjon DBUpgradinator kommer til å operere i. Enkelte av disse fordringene er gjort for å gjøre den objekt-orienterte implementasjonen av datamodellevolusjonsløsningen mindre parametrisert og derfor enklere å skrive og enklere å forstå.
 
-For å realisere tillatelsen av versjonsmiks mellom forskjellige applikasjonstjenere i webapplikasjonen DBUpgradinator er installert i vil dets implementasjon ikke oppdatere aggregater direkte, men heller lage et nytt et med et annerledes streng-prefiks. Følgelig vil den samme ''tuppelen'' lagres dobbelt opp hvis miksen av skjemaversjoner er av størrelse 2.
+KVolve sitt design ikke tillater versjonsmiks aggregater imellom. Det gjør imidlertid DBUpgradinator. Når den migrerer et aggregat oppretter den en ny nøkkel i stedet for å skrive en migrasjon til samme nøkkel. Dette betyr at dataobjekter lagres dobbelt hvis to forskjellige versjoner av webapplikasjonen er i omløp i programvaresystemet.
 
 Her listes øvrige antakelser, begrensninger og spesifikke designvalg for prototypeimplementasjonen av DBUpgradinator, databasen den kommer til å operere på, webapplikasjonen den testes i, og produksjonsmiljøet DBUpgradinator testes i.
 
 \begin{itemize}
-  \item I databasearkitektur modulen testes i serialiseres aggregater 'client' side, altså er lagringsnodene 'dumme' og backend-tjenerne 'smarte'
-  \item Project Voldemort brukes som database i testapplikasjonen
+  \item Project Voldemort brukes som NoSQL-database i testapplikasjonen
+  \item I databasearkitekturen modulen testes i, serialiseres aggregater på 'klientsiden' av Voldemorts logiske arkitektur, som er å finne i ''Design'' - siden til \cite{kreps2009} - altså er lagringsnodene 'dumme' og backend-tjenerne 'smarte'
   \item Serialisering (Voldemort): \underline{String}, altså ser den enkelte databasetjener kun strenger og kan ikke lese av skjemaet; videre antas det at databasen bruker LWW - strategien for å løse flettetvister automatisk
-  \item Applikasjonsstakken til Voldemort-instansen denne oppgaven tester har en fast konfigurasjon
+  \item Applikasjonsstakken til Voldemort-instansen som denne oppgaven tester, har en fast konfigurasjon
   \item Nøkler i skjemaet endrer ikke type eller form
   \item Dataobjekter har en skjema-versjonstag brukt til å sjekke om tuppelen må oppgraderes
-  \item Fordi modulen i prinsippet må være skjemaopplyst må den implementeres som en del av applikasjonslogikken
+  \item Fordi modulen i prinsippet må være skjemaopplyst, må den implementeres som en del av applikasjonslogikken
   \item Oppdateringsspesifikasjoner kan kjedes sammen, denne kjeden har Migrator-klassen styr på, altså er det Migrator-klassen som har en tilstandvariabel som peker på en lenket liste av instanser av transformasjonsobjekter
-  \item Akkurat som med KVolve blir ikke disse transformeringsobjektene fjernet når alle aggregatene lagret på det gamle skjemaet er migrert ferdig
+  \item Akkurat som med KVolve blir ikke disse transformeringsobjektene fjernet når alle aggregatene som er lagret på det gamle skjemaet er migrert ferdig
   \item Applikasjonen, skrevet i Java, holder styr på sitt implisitte skjema gjennom eksplisitt versjonering og eksplisitt deklarering av aggregatets modell ved å definere en egen Aggregate-klasse
   \item Webapplikasjonens utviklere programmerer på et eget lokalt utviklingsmiljø
-  \item I serversiden er tupler lagret med nøkler på form k:x, der suffikset x indikerer skjemaversjonen. Disse dataobjektene har ingen separate versjonsfelt idet de sendes Voldemort-serveren
+  \item I serversiden er tupler lagret med nøkler på form k:x, der suffikset x indikerer skjemaversjonen. Disse dataobjektene har ingen separate versjonsfelt, idet de sendes Voldemort-serveren
   \item Den enkelte utvikler har ikke behov for å endre nøkkelens struktur eller datatype
-  \item Alle nøkler Voldemort mottar er på strengform, selv om nøkler i praksis også kan være en liste av binærdata, derfor støtter ikke DBUpgradinator nedring av nøkkelens skjemastruktur
+  \item Alle nøkler Voldemort mottar, er på strengform. nøkler kan i praksis også være en liste av binærdata, derfor støtter ikke DBUpgradinator nedring av nøkkelens skjemastruktur
   \item Webapplikasjonen som modulen testes i har en RESTful - arkitektur
-  \item For ett bestemt produksjonsmiljø er det til enhver tid kun én klientinstans som kommuniserer med de andre; denne klientinstansen sender til enhver tid transformasjonsobjekter i ordentlig rekkefølge, det vil si at klienten gjør seg ferdig med å sende ett transformasjonsobjekt for én skjemaversjon til alle applikasjonstjenere før denne sender over transformasjonsobjektet som gjelder for den etterfølgende versjonen
-  \item Når transformasjonsobjekter sendes, så sendes de i en bestemt rekkefølge, altså er ikke rekkefølgen applikasjonstjenere mottar transformatorer i tilfeldig - denne antakelsen tillater oss å spesialisere og forenkle enkelte detaljer av kildekoden som kjører hos applikasjonsinstansene
+  \item For ett bestemt produksjonsmiljø er det til enhver tid kun én klientinstans som kommuniserer med de andre: Denne klientinstansen sender til enhver tid transformasjonsobjekter i ordentlig rekkefølge, det vil si at klienten gjør seg ferdig med å sende ett transformasjonsobjekt for én skjemaversjon til alle applikasjonstjenere før denne sender over transformasjonsobjektet som gjelder for den etterfølgende versjonen
+  \item Transformasjonsobjekter sendes i en bestemt rekkefølge. Rekkefølgen applikasjonstjenere mottar transformatorer i er ikke tilfeldig. Denne antakelsen tillater oss å spesialisere og forenkle enkelte detaljer av kildekoden som kjører hos applikasjonstjenerne
   \item Modulen skal kjøre i produksjonsmiljøet til en webapplikasjon skrevet i Java
-  \item Til enhver tid oppgraderes applikasjonen kun én versjon ad gangen, det vil si at på det meste er to forskjellige utgaver av versjonen som opererer i produksjonsmiljøet på ett og samme tidspunkt
+  \item Til enhver tid oppgraderes applikasjonen kun én versjon ad gangen, det vil si at på det meste er det to forskjellige utgaver av versjonen som opererer i produksjonsmiljøet på ett og samme tidspunkt
 \end{itemize}
 
 \subsection{Funksjonelle krav}
 
 \begin{enumerate}
-  \item DBUpgradinator skal lage én ekstra databasespørring for hver nye transformasjon som påføres et aggregat
-  \item Ved en GET-forespørsel til aggregatet med nøkkel \emph{x} fra en applikasjonsinstans som bruker en ny skjemaversjon \emph{k} skal DBUpgradinator også opprette en GET-forespørsel etter det samme aggregatet men med prefikset til den foregående skjemaversjonen i nøkkelen, \emph{j}
-  \item Hver enkelt applikasjonsinstans har kontroll over versjonen av dataskjemaet sitt, som identifiseres ved en hashstreng som konkatineres med IDen til hver enkelt dataelement før PUT sendes til databasen
-  \item DBUpgradinator vil opprette en ny tuppel i lageret hvis skjema-versjon-suffiks er annerledes og dataobjekt-ID-prefiks er likens prefikset til tuppelen som oppgraderes; således kan det distribuerte systemet kjøre en mikset tilstand mens datamigrasjonen foregår
-  \item Ved kjøring av DBUpgradinator: Hvis programmet mottar en spørring etter et aggregat som tilhører den nyeste skjema-versjonen (f.eks en GET på en nøkkel hvis skjemaversjon-suffiks tilsvarer versjonsstrengen til den nyeste skjemaversjonen) så vil ikke en migrasjon med transformator-klassen bli utført
+  \item DBUpgradinator skal lage én ekstra databasespørring for hver nye transformasjon som påføres et aggregat.
+  \item Ved en GET-forespørsel til aggregatet med nøkkel \emph{x} fra en applikasjonsinstans som bruker en ny skjemaversjon \emph{k}, skal DBUpgradinator også opprette en GET-forespørsel etter det samme aggregatet, men med prefikset til den foregående skjemaversjonen i nøkkelen, \emph{j}.
+  \item Hver enkelt applikasjonsinstans har kontroll over versjonen av dataskjemaet sitt, som identifiseres ved en hashstreng som konkatineres med IDen til hver enkelt dataelement før PUT sendes til databasen.
+  % Revider, pils
+  \item DBUpgradinator vil opprette en ny tuppel i lageret hvis skjema-versjon-suffiks er annerledes og dataobjekt-ID-prefiks er likens prefikset til tuppelen som oppgraderes; slik kan det distribuerte systemet kjøre en mikset tilstand mens datamigrasjonen foregår.
+  \item Ved kjøring av DBUpgradinator: Hvis programmet mottar en spørring etter et aggregat som tilhører den nyeste skjema-versjonen (f.eks en GET på en nøkkel hvis skjemaversjon-suffiks tilsvarer versjonsstrengen til den nyeste skjemaversjonen), så vil ikke en migrasjon med transformator-klassen bli utført.
 \end{enumerate}
 
 \subsection{Kvalitetskrav}
 
 \begin{enumerate}
-  \item Tilgjengelighet: Det skal være mulig å forespørre data fra databasen mens datamigrasjon er iverksatt. Dette kravet evalueres ikke på kvantitativt, men på kvalitativt grunnlag, det vil si ved å kjøre DBUpgradinator i et simulert produksjonsmiljø, det vil si en applikasjon som ikke mottar forespørsler fra klienter som kommuniserer med HTTP.
-  \item Ytelse: Ved rullerende, eller lat datamigrasjon, utsettes databasen for en vesentlig degradering i gjennomstrømskapasitet, målt i spørringer per sekund. Denne hemmelsen må være minimal i den implementerte migrasjonsløsningen.
-  \item Modularitet: Løsningen som programmeres bør interferere minst mulig med eksisterende kildekode i Project Voldemort, primært gjennom å utvikle det som et separat prosjekt.
+  \item Tilgjengelighet: Det skal være mulig å forespørre data fra databasen mens datamigrasjon er iverksatt. Dette kravet evalueres på et kvalitativt grunnlag. For å teste dette kravet kjøres DBUpgradinator i et simulert produksjonsmiljø, det vil si en applikasjon som mottar forespørsler fra klienter som kommuniserer med HTTP.
+  \item Ytelse: Ved rullerende, eller lat datamigrasjon, utsettes databasen for en vesentlig degradering i gjennomstrømskapasitet, målt i spørringer per sekund. Denne hemmelsen må ikke være mer enn 50 \% i den implementerte migrasjonsløsningen.
+  \item Modularitet: Løsningen som programmeres bør kunne kjøres i de fleste Java-applikasjoner, uavhengig av hvilken NoSQL - database applikasjonen lagrer data med.
 \end{enumerate}
 
