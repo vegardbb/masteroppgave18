@@ -2,5 +2,6 @@
 \begin{tikzpicture}
   \begin{axis}[xlabel={tid/s},ylabel={Persisterte aggregater},height=.91\textwidth,width=.91\textheight]
     \addplot[densely dotted] table[x=t,y=f,col sep=comma]{plots/put.txt};
+    \addplot[color=red] coordinates {(0,133) (5300,133)};
   \end{axis}
 \end{tikzpicture}
