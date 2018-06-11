@@ -2,8 +2,11 @@
 
 DBUpgradinator er skrevet i det objektorienterte programmeringsspråket Java. Java er et statisk, nominelt, og sterkt typet språk. Med nominelt menes at type-ekvivalens eller type-kompabilitet baseres på eksplisitte deklarasjoner i kildekoden. I Java deklareres heltall representert ved fire bytes med nøkkelordet \emph{int}. Med sterk typing menes at en type, enten det er en primitiv datatype, streng eller hjemmelaget klasse, alltid blir deklarert for ethvert objekt i kildekoden. Et statisk typet språk er et språk der typen til en variabel kontrolleres idet kildekoden kompileres, ikke under kjøring.
 
-Som vist i figur \ref{fig5}, består DBupgradinator av tre klasser (firkant): \textbf{AbstractAggregateTransformer}, \textbf{Migrator} og \textbf{StringQueryInterface}. Migrator - klassen innehar tre forskjellige migrasjonsmetoder, og to moduler (avrundet firkant): \emph{AppVersionResolver} og \emph{AggregateTransformerReceiver}. I implementasjonen er disse to elementene henholdsvis representert ved funksjonene \emph{getPersistedKey} og \emph{aggregateTransformerReceiver}. Koden i migrasjonsmetodene \emph{getAndMigrateAggregate}, \emph{putAndMigrateAggregate} og \emph{postAndMigrateAggregate} er skrevet i henhold til aktivitetsdiagrammene \ref{fig7}, \ref{fig8} og \ref{fig9}.
+Som vist i figur \ref{fig5}, består DBupgradinator av tre klasser (firkant): \textbf{AbstractAggregateTransformer}, \textbf{Migrator} og \textbf{StringQueryInterface}. Migrator - klassen innehar tre forskjellige migrasjonsmetoder, og to moduler (avrundet firkant): \emph{AppVersionResolver} og \emph{AggregateTransformerReceiver}.
 
+I implementasjonen er disse to elementene henholdsvis representert ved funksjonene \emph{getPersistedKey} og \emph{aggregateTransformerReceiver}. Koden i migrasjonsmetodene \emph{getAndMigrateAggregate}, \emph{putAndMigrateAggregate} og \emph{postAndMigrateAggregate} er skrevet i henhold til aktivitetsdiagrammene \ref{fig7}, \ref{fig8} og \ref{fig9}.
+
+\newpage
 \subsection{AbstractAggregateTransformer}
 
 \input{code/abstractaggregatetransformer}

@@ -66,7 +66,7 @@ Figur \ref{fig5} viser hvordan den logiske strukturen til webapplikasjoner, som 
 DBUpgradinator består av følgende elementer, som vist i boksen til høyre i figur \ref{fig5}:
 
 \begin{description}
-  \item [Migrator] er det objektet i pakken som utfører alle spørringer mot databasen, både for å betjene brukerforespørsler, og for å persistere migrerte aggregater, opprettet av \textbf{Abstract}\-\textbf{Aggregate}\-\textbf{Transformer}-objektet på strengformat. Derfor er DBUpgradinator modellert som et eget lag i webapplikasjonens logiske stakk, plassert under appliaksjonslogikken og over databasegrensesnittet ''VoldemortClient'', i figur \ref{fig5}.
+  \item [Migrator] er det objektet i pakken som utfører alle spørringer mot databasen, både for å betjene brukerforespørsler, og for å persistere migrerte aggregater, opprettet av \textbf{Abstract}\-\textbf{Aggregate}\-\textbf{Transformer}-objektet på strengformat. Derfor er DBUpgradinator modellert som et eget lag i webapplikasjonens logiske stakk, plassert under applikasjonslogikken og over databasegrensesnittet ''VoldemortClient'', i figur \ref{fig5}.
   \item [AggregateTransformerReceiver] er en modul som mottar et \textbf{AbstractAggregateTransformer} - objekt via en I/O-operasjon, og holder rede på det i programminnet.
   \item [AppVersionResolver] Oppgaven til denne modulen er å kople dataobjektets nøkkel i en innkommende HTTP-spørring (k) med applikasjonsversjonens nøkkel (x) på formen \texttt{k + : + x}
   \item [AbstractAggregateTransformer] er et objekt som transformer aggregater som enten er mottatt fra en HTTP-forespørsel (PUT eller POST) eller mottatt fra databasen som et resultat av en GET-forespørsel. Selve transformasjonsfunksjonen er implemtert av applikasjonens utviklere eller vedlikeholdere.
@@ -119,7 +119,7 @@ I det motsatte tilfelle sender programmet aggregatet inn i transformasjonsfunksj
   \label{fig9}
 \end{figure}
 
-Aktivitetsdiagrammet i figur \ref{fig9} beskriver webapplikasjonens oppførsel når en PUT\-forespørsel fra en applikasjonstjener hvis skjemaversjon er \emph{j}, mens produksjonsmiljøet er under oppgradering av dataskjemaet fra versjon \emph{j} til \emph{k}.
+Aktivitetsdiagrammet i figur \ref{fig9} beskriver webapplikasjonens oppførsel når en PUT-forespørsel fra en applikasjonstjener hvis skjemaversjon er \emph{j}, mens produksjonsmiljøet er under oppgradering av dataskjemaet fra versjon \emph{j} til \emph{k}.
 
 Forretningsordenen for en skriveforespørsel er omvendt av den vi så for leseforespørsler i figurene \ref{fig7} og \ref{fig8}. Her blir DBUpgradinator kontaktet før databasespørringen sendes. Årsaken er at aggregatet ved PUT eller POST er gitt av klienten, sammen med både dets påtenkte skjema og dets statiske nøkkel. Igjen vil DBUpgradinator kontrollere skjemaversjonen, og asynkront migrere aggregatet ved å opprette en ny streng basert på det, hvis skjemanøkkelen som kommer fra forespørselen ikke er den nyeste. Etter å ha utført migrasjonen av det oppdaterte aggregatet og sendt resultatet til databaseklienten i form av et put-funksjonskall, hopper programmet tilbake inn i applikasjonslogikken, og sender et nytt put-kall til samme databaseklient.
 
@@ -140,9 +140,9 @@ Når applikasjonen mottar en bekreftelse fra et put-kall opprettes en HTTP-respo
 Det fysiske perspektivet beskriver testmiljøet DBUpgradinator skal testes i. De fire boksene i figur \ref{fig10} tilsvarer fire forskjellige virtuelle datamaskiner. Hver av de virtuelle maskinene kjører to separate programmer (kalt ''kjøretidsmiljø'') som lytter på én nettverksport hver. Disse programmene er:
 
 \begin{enumerate}
-  \item Webapplikasjonen, som i figur \ref{fig10} benytter artefaktene WebShopSimulator.jar og DBUpgradinator.jar til å kjøre selve appliaksjonstjeneren; samtidig benytter prosessen voldemort.jar - filen for å instansiere en klient som replikerer hvert aggregat til tre databasenoder
+  \item Webapplikasjonen, som i figur \ref{fig10} benytter artefaktene WebShopSimulator.jar og DBUpgradinator.jar til å kjøre selve applikasjonstjeneren; samtidig benytter prosessen voldemort.jar - filen for å instansiere en klient som replikerer hvert aggregat til tre databasenoder
   \item Databasenoden, som lagrer og henter data på kommando fra instanser av \textbf{StoreClient}
 \end{enumerate}
 
-Figur \ref{fig10} viser også at hver kjørende instans av Voldemort-klienten fra applikasjonstjenerprogrammet har én replikeringsassosiasjon (kalt ''spørringskoordinator'') med hver av de tre databasenodene stasjonert på de andre virtuelle maskinene. Det er ikke nødvendigvis slik replikeringsstrategien er konfigurert i databaseinstansen, figuren er ment å illustrere at klientprogrammet til Voldemort er del av applikasjonsprosessen, og at det er den som utførerer spørringer mot de enkelte databasenoder for å persistere og lese replikerte aggregater.
+Figur \ref{fig10} viser også at hver kjørende instans av Voldemort-klienten fra applikasjonstjenerprogrammet har én replikeringsassosiasjon (kalt ''spørrekoordinator'') med hver av de tre databasenodene stasjonert på de andre virtuelle maskinene. Det er ikke nødvendigvis slik replikeringsstrategien er konfigurert i databaseinstansen, figuren er ment å illustrere at klientprogrammet til Voldemort er del av applikasjonsprosessen, og at det er den som utførerer spørringer mot de enkelte databasenoder for å persistere og lese replikerte aggregater.
 

@@ -1,10 +1,9 @@
 %===================================== KAPITTEL 2 =================================
 
 \chapter{Teori}
-% Først, introduser og definer begrepet ''aggregatorientert datamodell'' - Kanskje jeg bør forklare ytterligere hva det betyr?
+
 Ifølge \cite{sadalage2013} kan nøkkelverdi-lagre (eng. key-value store), kolonnefamilielagre (eng. column family stores) og dokumentlagre (eng. ''document stores'') ordnes under én og samme ''art'' av NoSQL-databaser: Aggregatorienterte databasesystem (eng. ''aggregate oriented databases''). Denne introduksjonen til de tre nevnte NoSQL - datamodellene forholder seg til denne klassifiseringen. Utover disse tre typene av NoSQL - modeller finnes også den graforienterte modellen, som benyttes av systemer som InfiniteGraph, OrientDB og FlockDB. Denne datamodellen vil ikke bli beskrevet i noen videre detalj. Det bør nevnes at med begrepet ''datamodell'' menes den programmatiske metoden data organiseres av et DBMS, i vitenskaplig notasjon er ''metamodell'' mer presist.
 
-% Dette kapitlet presenterer litteraturoversikten og resultater fra prosjektarbeidet
 Dette kapitlet gir leseren en innføring i tre NoSQL - datamodeller, hvordan de skiller seg ut fra den relasjonelle datamodellen, og hvordan deres forskjeller fra relasjonelle databaser har innvirkning på hvordan levende oppgradering av dem og migrasjon av eksisterende data i produksjonsmiljøet kan utføres i en smidig utviklingsprosess.
 
 Vi begynner med å beskrive den relasjonelle datamodellen, og hvorfor den ikke holder mål i et distribuert produksjonsmiljø der større datavolum behandles. Dernest blir den aggregatorienterte datamodellen presentert, en kategori underordnet NoSQL-paraplyen som denoterer fellesnevneren mellom nøkkelverdilagre, dokumentlagre og kolonnefamilielagre. Samtlige tre former for aggregatorientering beskrives i avsnitt 2.2.1 til 2.2.3.
