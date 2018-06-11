@@ -67,7 +67,7 @@ Quorum-konfigurasjonen bestemmes ikke i \texttt{cluster.xml}, da det noen ganger
 
 \texttt{test} - filen er konfigurasjonsfilen til nøkkelverdi-lageret, hvis identifiserte navn er ''test''.  I prinsippet kan en databaseklynge ha flere databaseinstanser, men man kan ikke kjøre spørringer på tvers av dem. Filen dikterer hvilken strategi nodene skal følge når de leverer antydede replika\-aggregat til sine midlertidige adresser.
 
-Kodeoppføring \ref{test} definerer også serialiseringsmetoden nodene benytter når de lagrer aggregater mottat fra en spørringskoordinator. I WebshopSimulator brukes serialiseirngs\-metoden ''string'', det vil si at oktettene noder mottar behandles som UTF8-kodet tekst. Aggregatene kodes til binært i selve applikasjonen, og er allerede kodet idet de blir behandlet av \textbf{StoreClient} - instansen. Databasekonfigurasjonen forblir uendret i løpet av testene som utføres.
+Kodeoppføring \ref{test} definerer også serialiseringsmetoden nodene benytter når de lagrer aggregater mottat fra en spørrekoordinator. I WebshopSimulator brukes serialiseirngs\-metoden ''string'', det vil si at oktettene noder mottar behandles som UTF8-kodet tekst. Aggregatene kodes til binært i selve applikasjonen, og er allerede kodet idet de blir behandlet av \textbf{StoreClient} - instansen. Databasekonfigurasjonen forblir uendret i løpet av testene som utføres.
 
 \subsection{Testmiljø}
 

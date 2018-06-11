@@ -1,10 +1,10 @@
 \section{Diskusjon}
 
-Her følger en tolkning av testenes resultater og en kvalitativ sammenlikning med KVolve sin ytelsespåvirkning på Redis, jamfør testresultatene \cite{saur2016} presenterer i kapittel \rom{5} i sin artikkel. Før testresultatene drøftes og evalueres opp mot kvalitetskravene vil noen relevante erfaringer belyses, som ble notert da testene ble gjennomført.
+Her følger en tolkning av testenes resultater og en kvalitativ sammenlikning med KVolve sin ytelsespåvirkning på Redis, jamfør testresultatene \cite{saur2016} presenterer i kapittel V i sin artikkel. Før testresultatene drøftes og evalueres opp mot kvalitetskravene vil noen relevante erfaringer belyses, som ble notert da testene ble gjennomført.
 
 \subsection{Om flertrådede programvaresystemers blokkerende natur}
 
-Migrator-klassen, beskrevet i delkapittel \ref{migrator}, skulle opprinnelig en egen tråd som konstant kjørte en while-løkke i funksjonen \emph{aggregateTransformerReceiver} der den ventet på nye aggregattransformatorer i for mav binære filer. Denne funksjonen gjør et kall til metoden \emph{accept} fra \textbf{ServerSocket}-klassen.
+Migrator-klassen, beskrevet i delkapittel \ref{migrator}, skulle opprinnelig instansiere en egen tråd som konstant kjørte en while-løkke i funksjonen \emph{aggregateTransformerReceiver} der den ventet på nye aggregattransformatorer i for mav binære filer. Denne funksjonen gjør et kall til metoden \emph{accept} fra \textbf{ServerSocket}-klassen.
 
 Effekten av dette metodekallet er at tråden som kjører funksjonen må \underline{aktivt vente} på en innkommende dataenhet, for eksempel en matrise (byte[] i Java) av oktetter. Ved kjøretid kan denne tråden okkupere prosessoren store deler av kjøretiden. Dette ville ha resultert i en vesentlig reduksjon av systemets ytelse sammenliknet med et tilsvarende produksjonsmiljø der DBUpgradinator ikke hadde vært installert. Under en prøvetest viste prosesshåndtøren \underline{htop} at tråden som \emph{aggregateTransformerReceiver} kjørte i brukte den ene prosessorkjernen i datamaskinen 95 \% av kjøretiden.
 
@@ -115,14 +115,14 @@ Oppsummering av funksjonelle krav. Tallene gjenspeiler listen over funksjonelle 
   \item Implementert og testet. Se kodeoppføringer \ref{mput} og \ref{mget}.
   \item Implementert. Se kodeoppføring \ref{mget}.
   \item Implementert og testet. Se kodeoppføring \ref{schemaresolver}.
-  \item Implementert. Ved hjelp av denne strukturen på nøklene kan DBUpgradinator også brukes til å fasilitere A/B - testing av to forskjellige appliaksjonsversjoner med to forskjellige skjemaversjoner.
+  \item Implementert. Ved hjelp av denne strukturen på nøklene kan DBUpgradinator også brukes til å fasilitere A/B - testing av to forskjellige applikasjonsversjoner med to forskjellige skjemaversjoner.
   \item Implementert.
 \end{enumerate}
 
 Av kvalitetskravene er følgende attributter oppfylt:
 
 \begin{description}
-  \item[Tilgjengelighet] Delvis oppfylt. Testapplikasjonen WebShopSimulator er istand til å betjene mange forespørsler samtidig, men på grunn av at implementasjonen er utført på applikasjonsnivået i arkitekturen kan det ta lengre tid for appliaksjonen å betjene like mange forespørsler når migrasjoner er igang.
+  \item[Tilgjengelighet] Delvis oppfylt. Testapplikasjonen WebShopSimulator er istand til å betjene mange forespørsler samtidig, men på grunn av at implementasjonen er utført på applikasjonsnivået i arkitekturen kan det ta lengre tid for applikasjonen å betjene like mange forespørsler når migrasjoner er igang.
   \item[Ytelse] Ikke oppfylt. Tapet av gjennomstrømming er større enn 50 \%, jamfør delkapittel \ref{diseone}.
   \item[Modulær løsning] Oppfylt. Se kodeoppføring \ref{queryinter} og delkapittel \ref{chaptersqi}.
 \end{description}
