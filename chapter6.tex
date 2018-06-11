@@ -10,7 +10,7 @@ I dette prosjektet ble en programvaremodul, kalt DBUpgradinator, implementert i 
 
 Testresultatene fra kapittel 5 demonstrerer at DBUpgradinator kan brukes til å migrerere JSON-serialiserte dataobjekter til én versjon til den neste av en webapplikasjon, uten at noen noder blir slått av. Man kan derfor fastslå at programvaremodulen oppfyller de funksjonelle krav opplistet i delkapittel \ref{migrator}.
 
-Modulens største styrke er at den, gitt de antakelser presentert i kapittel 4, kan regulere versjonsmiks mellom skjemaer og applikasjonsinstanser, fordi modulens kildekode forventer at applikasjonsutviklere navngir deres implisitte skjema. Modulen benytter skjemanavn som del av nøkkelen til aggregatene.  Følgelig må applikasjonsinstansen spesifisere navnet på skjemaversonen den opererer på, i tillegg til et ID-prefiks for å lese et aggregat. 
+Modulens største styrke er at den, gitt de antakelser presentert i kapittel 4, kan regulere versjonsmiks mellom skjemaer og applikasjonsinstanser, fordi modulens kildekode forventer at applikasjonsutviklere navngir deres implisitte skjema. Modulen benytter skjemanavn som del av nøkkelen til aggregatene.  Følgelig må applikasjonsinstansen spesifisere navnet på skjemaversonen den opererer på, i tillegg til et ID-prefiks for å lese et aggregat.
 
 Videre påfører datamigrasjonsmodulen, gjennom Migrator - klassen, én ekstra asynkron PUT - spørring for hver spørring på et aggregat i et gammelt skjema. Denne ekstra operasjonen enten oppretter eller oppdaterer en nyere utgave av aggregatet. Den nye utgaven er en streng av tekst, utledet og opprettet av en aggregat-transformasjonsklasse. Slik kan endringer som gjøres i en gammel applikasjonsinstans, også kunne leses av en ny applikasjonsinstans.
 
@@ -32,7 +32,7 @@ Et meget viktig designvalg er å bestemme hvilken del av den logiske arkitekture
 
 Som vist i evalueringskapitlet av denne oppgaven, innebærer et slikt design ekstra nettverkstrafikk for hvert aggregat som aksesseres, enten for oppdatering eller lesing. Årsaken til den ekstra nettverkstrafikken er at hvert migrerte aggregat også må replikeres. Når replikeringsfaktoren er 3, vil en PUT til et aggregat som samtidig migreres til neste versjon resultere i seks skriveoperasjoner i databaseklyngen.
 
-Hvis migrasjonsmodulen hadde blitt implementert som en egen type NoSQL-tjener underordnet Project Voldemort, ville ikke tjenestetrafikken dobles hver gang systemet gjennomgår en oppdatering. På den annen siden ville ikke den modulære oppgraderingsmodulen ha den enestående kvalitet at den kan benyttes på andre aggregatorienterte databasesystemer enn Project Voldemort.
+Hvis migrasjonsmodulen hadde blitt implementert som en egen type NoSQL-tjener underordnet Project Voldemort, ville ikke tjenestetrafikken fordoblet seg hver gang systemet gjennomgikk en oppdatering. På den annen siden ville ikke den modulære oppgraderingsmodulen ha den enestående kvalitet at den kan benyttes på andre aggregatorienterte databasesystemer enn Project Voldemort.
 
 En passende prosjektoppgave på høsten kan være å kartlegge Voldemorts allerede implementerte støtte for datamigrasjon, så vel som resten av Voldemorts kildekode. En påfølgende masteroppgave kan da implementere en avart av DBUpgradinator i form av en egen \textbf{Store} - klasse i Voldemorts kildekode.
 
