@@ -1,4 +1,4 @@
-\begin{lstlisting}[language=Java, label=atr, caption={Metoden \emph{addTransformer}, og metoden \emph{aggregateTransformerReceiver}, som kjøres i en separat tråd idet \textbf{Migrator}-konstruktøren kalles.}]
+\begin{lstlisting}[language=Java, label=atr, caption={Metodene \emph{addTransformer} og \emph{aggregateTransformerReceiver}.}]
 private void addTransformer(AbstractAggregateTransformer t) { this.transformers.put(t.getAppVersion(), t); }
 
 private void aggregateTransformerReceiver() {

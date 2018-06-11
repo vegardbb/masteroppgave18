@@ -17,7 +17,7 @@ Minneforbruket når hverken applikasjonen eller databasenoden var oppe lå på r
 Videre burde forespørsels - simulatoren ha sendt det samme antallet forespørsler om gangen. Ettersom testmiljøet i utgangspunktet er primært ment for å demonstrere at DBUpgradinator oppfyller sine funksjonelle krav, har denne suboptimale konfigurasjonen lite å si for konklusjonen.
 
 %\clearpage
-\begin{lstlisting}[basicstyle=\footnotesize, label={testlog}, caption={De første 50 linjene i den applikasjonsloggen til tjeneren ''vbb-master2018-crabbe''' (se tabell \ref{droplets}) fra test 2.}]
+\begin{lstlisting}[basicstyle=\footnotesize, label={testlog}, caption={De første 50 linjene i den applikasjonsloggen til tjeneren vbb\-master2018\-crabbe (se tabell \ref{droplets}) fra test 2.}]
 INFO @ 2018-06-03 19:13:06 - Received aggregate transformer for schema x
 INFO @ 2018-06-03 19:22:36 - Persisted key a03d6b11-0adb-4790-af1b-0b74da4ff46f:y
 INFO @ 2018-06-03 19:22:36 - Persisted key f58e6db5-fc98-40c7-b260-ce8ace6deb37:y
@@ -108,7 +108,7 @@ I kodeoppføring \ref{mget} kan man telle i alt tre databasekall: Ett for å les
 
 \subsection{Evaluering av kravoppfyllelse}
 
-Oppsummering av funksjonelle krav. Tallene gjenspeiler listen fra \ref{funq}:
+Oppsummering av funksjonelle krav. Tallene gjenspeiler listen over funksjonelle krav fra delkapittel \ref{funq}:
 
 \begin{enumerate}
   \item Implementert og testet. DBUpgradinator kan migrere ethvert aggregat i et aggregatorientert databasesystem som tilhører et utdatert implisitt skjema.
